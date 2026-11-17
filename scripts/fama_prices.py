@@ -51,6 +51,9 @@ def strip_filters(body: dict) -> dict:
     return b
 
 
+SCHEMAS: list[dict] = []  # Power BI data model (tables + fields), for describe()
+
+
 def capture(show: bool) -> list[dict]:
     calls = []
     with sync_playwright() as p:
@@ -58,6 +61,12 @@ def capture(show: bool) -> list[dict]:
         page = browser.new_page(locale="ms-MY", timezone_id="Asia/Kuala_Lumpur")
 
         def on_response(resp):
+            if "conceptualschema" in resp.url.lower():
+                try:
+                    SCHEMAS.append(resp.json())
+                except Exception:  # noqa: BLE001
+                    pass
+                return
             if "querydata" not in resp.url.lower():
                 return
             try:
@@ -110,6 +119,44 @@ def capture(show: bool) -> list[dict]:
     return calls
 
 
+def _query(body: dict) -> dict:
+    try:
+        cmd = body["queries"][0]["Query"]["Commands"][0]
+        return cmd["SemanticQueryDataShapeCommand"]["Query"]
+    except (KeyError, IndexError, TypeError):
+        return {}
+
+
+def describe(calls: list[dict]) -> None:
+    """Print what each Power BI query asks for, so the report's fields
+    (state, market, level, date...) and default filters show in the log."""
+    for sch in SCHEMAS:
+        for model in sch.get("schemas", []):
+            for ent in model.get("schema", {}).get("Entities", []):
+                props = [p.get("Name") for p in ent.get("Properties", [])]
+                print(f"[FAMA] table {ent.get('Name')!r}: {props}")
+    print("[FAMA] ===== Power BI queries made by the page =====")
+    for i, c in enumerate(calls):
+        if c.get("replayed"):
+            continue
+        q = _query(c["body"])
+        tables = [f.get("Entity") for f in q.get("From", [])]
+        fields = [s.get("Name") for s in q.get("Select", [])]
+        try:
+            rows = decode(c["response"])
+        except Exception as e:  # noqa: BLE001
+            rows = [{"decode_error": str(e)}]
+        print(f"[FAMA] #{i:02d} tables={tables} rows={len(rows)}")
+        print(f"[FAMA]     fields={fields}")
+        if q.get("Where"):
+            print(f"[FAMA]     filters={json.dumps(q['Where'], ensure_ascii=False)[:1500]}")
+        if q.get("OrderBy"):
+            print(f"[FAMA]     order={json.dumps(q['OrderBy'], ensure_ascii=False)[:300]}")
+        for r in rows[:8]:
+            print(f"[FAMA]     sample: {json.dumps(r, ensure_ascii=False)[:300]}")
+    print("[FAMA] ===== end =====")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--show", action="store_true")
@@ -123,6 +170,7 @@ def main():
     if not calls:
         print("[FAMA] No Power BI data captured.", file=sys.stderr)
         sys.exit(1)
+    describe(calls)
 
     best, best_score, best_cut = [], -1, False
     for i, c in enumerate(calls):
