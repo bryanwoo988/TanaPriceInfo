@@ -23,9 +23,78 @@
 - **手动跑一次**：GitHub App 或手机浏览器打开 repo → Actions → 选这个 workflow → Run workflow。
 - **看结果**：同一页能看到每次是成功还是失败，点进去看日志。
 - **看数据**：repo 里打开 `data/` 下的 CSV。
-- **PWA**：repo 设 Public 的话，PWA 直接读
-  `https://raw.githubusercontent.com/bryanwoo988/TanaPriceInfo/main/data/mpob_ffb_daily.csv`。
-  Private 的话要另外发布（例如 GitHub Pages）。
+- **看价格**：打开 PWA（见下面），可以加到主屏幕。
+
+## PWA 和数据接口
+
+网址：**https://bryanwoo988.github.io/TanaPriceInfo/**
+
+- 界面用马来文。首页：MPOB 油棕 FFB 价（6 区、和上一个交易日比较、走势图）+ FAMA 批发价（可搜索）。"Runcit" 页：PriceCatcher 按州的零售价。
+- 手机加到主屏幕：iPhone 用 Safari → 分享 → 「添加到主屏幕」；Android 用 Chrome → 菜单 → 「安装应用」。
+- 离线时显示上次打开时的价格。
+- 每天价格收集跑完后，`Publish PWA + API` workflow 会自动重建网站；改了 `web/` 也会自动发布。
+
+### 第一次启用（只做一次）
+
+**Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**。然后到 Actions 手动跑一次 "Publish PWA + API"。
+
+### 给其他 app 用的 JSON 接口
+
+所有网址都是 `https://bryanwoo988.github.io/TanaPriceInfo/` 加上：
+
+| 网址 | 内容 |
+|---|---|
+| `api/latest.json` | 一次拿全部：MPOB 最新一天 + FAMA 最新列表 + PriceCatcher 最新一天 |
+| `api/mpob.json` | 收集到的全部 MPOB 日期 |
+| `api/fama.json` | FAMA 最新一天 |
+| `api/pricecatcher.json` | PriceCatcher 最新一天，全部州 |
+| `data/*.csv` | 原始 CSV（例如给 Google Sheets 用） |
+
+规则：
+- 价格单位是 RM，数字类型；没有价格时是 `null`。
+- 日期格式 `YYYY-MM-DD`；`generated_at` 是马来西亚时间。
+- `schema` 是格式版本号。以后如果有不兼容的改动，这个数字会加 1。
+- MPOB 的 `status`：`ok`、`NT`（没交易）、`PH`（公共假期）。
+- FAMA 的 `verified: false` 表示数据还没和 FAMA 网站核对。
+- 每天大约 6:20pm 更新一次，app 不需要频繁请求。
+
+`api/latest.json` 例子（节录）：
+
+```json
+{
+  "schema": 1,
+  "generated_at": "2026-11-17T18:16:02+08:00",
+  "mpob": {
+    "unit": "RM per 1% OER (harga pintu kilang)",
+    "date": "2026-11-16",
+    "prices": {"north": 44.36, "south": 44.67, "central": 44.42, "east_coast": 44.4, "sabah": 40.07, "sarawak": 40.17},
+    "previous_date": "2026-11-13",
+    "change": {"north": 0.26, "south": 0.27, "central": 0.24, "east_coast": 0.26, "sabah": 0.23, "sarawak": 0.23}
+  },
+  "fama": {"date": "2026-11-17", "verified": false,
+           "items": [{"item": "AYAM HIDUP", "grade": "F.A.Q", "unit": "Kilogram", "price": 6.88}]},
+  "pricecatcher": {"date": "2026-11-16",
+                   "items": [{"state": "Johor", "item": "BAYAM HIJAU", "unit": "1kg", "category": "SAYUR-SAYURAN",
+                              "premises": 86, "median": 6.0, "min": 3.78, "max": 14.0}]}
+}
+```
+
+Flutter 例子：
+
+```dart
+final r = await http.get(Uri.parse('https://bryanwoo988.github.io/TanaPriceInfo/api/latest.json'));
+final data = jsonDecode(utf8.decode(r.bodyBytes));
+final north = data['mpob']['prices']['north'];   // double 或 null
+```
+
+React Native 例子：
+
+```js
+const data = await (await fetch('https://bryanwoo988.github.io/TanaPriceInfo/api/latest.json')).json();
+const north = data.mpob.prices.north;
+```
+
+本地预览：`python scripts/build_site.py` 然后 `python -m http.server -d site 8000`，打开 http://localhost:8000 。
 
 ## 第一次跑完要检查
 

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Harga Harian</title>
+  <meta name="description" content="Harga harian BTS sawit MPOB, harga pasaran FAMA dan harga runcit PriceCatcher.">
+  <meta name="theme-color" content="#1f6f43" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1712" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Harga Harian">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Harga Harian</h1>
+    <p id="updated" class="muted">Memuatkan…</p>
+  </header>
+
+  <div id="offline" class="banner" hidden>Luar talian — memaparkan data terakhir yang disimpan.</div>
+
+  <main>
+    <section id="tab-utama" class="tab" aria-labelledby="t-utama">
+      <article class="card" id="mpob">
+        <div class="card-head">
+          <h2>Harga BTS Sawit (MPOB)</h2>
+          <span class="muted small">RM / 1% OER</span>
+        </div>
+        <p class="muted small" id="mpob-date"></p>
+        <ul class="regions" id="mpob-list"></ul>
+        <div class="chart-wrap">
+          <p class="small muted" id="chart-title"></p>
+          <svg id="mpob-chart" viewBox="0 0 320 120" preserveAspectRatio="none" role="img"></svg>
+          <div class="chart-axis small muted"><span id="chart-from"></span><span id="chart-to"></span></div>
+        </div>
+      </article>
+
+      <article class="card" id="fama">
+        <div class="card-head">
+          <h2>Harga Pasaran (FAMA)</h2>
+          <span class="badge" id="fama-badge" hidden>Belum disahkan</span>
+        </div>
+        <p class="muted small" id="fama-date"></p>
+        <p class="note small" id="fama-note" hidden>Data FAMA masih disemak. Harga ialah purata dan mungkin tidak tepat.</p>
+        <input type="search" id="fama-search" placeholder="Cari barang… (cth. ayam, cili)" autocomplete="off">
+        <ul class="list" id="fama-list"></ul>
+        <p class="muted small center" id="fama-count"></p>
+      </article>
+    </section>
+
+    <section id="tab-runcit" class="tab" aria-labelledby="t-runcit" hidden>
+      <article class="card">
+        <div class="card-head">
+          <h2>Harga Runcit (PriceCatcher)</h2>
+        </div>
+        <p class="muted small" id="pc-date"></p>
+        <div class="row">
+          <label class="small muted" for="pc-state">Negeri</label>
+          <select id="pc-state"></select>
+        </div>
+        <input type="search" id="pc-search" placeholder="Cari sayur / buah…" autocomplete="off">
+        <ul class="list" id="pc-list"></ul>
+        <p class="muted small center">Harga tengah (median) daripada premis yang dilaporkan.</p>
+      </article>
+    </section>
+  </main>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-utama" aria-selected="true" data-tab="utama">Utama</button>
+    <button role="tab" id="t-runcit" aria-selected="false" data-tab="runcit">Runcit</button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
