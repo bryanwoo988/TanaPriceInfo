@@ -32,6 +32,9 @@
 - 界面用马来文。底部三个标签：**MPOB**（油棕 FFB 价：6 区、涨跌、走势图）、**FAMA**（Ladang/Borong/Runcit、州、县、分类、搜索；点产品看三个层级和各州/各县比较）、**KPDN**（PriceCatcher 按州零售价）。右上角 ⓘ 是 Info（版本、更新记录、抓取历史）。某个来源过期或抓取失败时，它的标签旁有红点。
 - 手机加到主屏幕：iPhone 用 Safari → 分享 → 「添加到主屏幕」；Android 用 Chrome → 菜单 → 「安装应用」。
 - 离线时显示上次打开时的价格。
+- **分享**：Info 页最上面有 QR code（点一下放大）、"Kongsi"（手机分享选单）和"Salin pautan"（复制网址）。
+  QR 图是 `web/icons/qr.svg`，内容固定为 `https://bryanwoo988.github.io/TanaPriceInfo/`。**repo 改名或换网址时要重新生成**：
+  `pip install segno` 然后 `python -c "import segno; segno.make('新网址', error='m').save('web/icons/qr.svg', border=4)"`，并改 `web/app.js` 里的 `APP_URL`。
 - **自动更新**：每次发布，`build_site.py` 按 `web/` 的内容算出版本号写进 `sw.js`，所以代码一改，手机就检测得到。已加到主屏幕的 app 在打开或从背景切回来时会检查新版本：有就自动重新加载（正在看产品详情或打字时，改为顶部提示"Versi baharu tersedia"，点一下更新）。切回来时数据超过 10 分钟也会重新拿。页面底部显示版本号（`Versi …`），也可以看 `version.json`。
 - 网页文件和数据都是"先上网拿最新，4 秒内拿不到才用缓存"。
 
