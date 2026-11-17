@@ -11,11 +11,6 @@ const LIST_LIMIT = 300;
 
 const $ = (id) => document.getElementById(id);
 const rm = (v) => (v == null ? "—" : v.toFixed(2));
-// Match at the start of a word: "ayam" finds "AYAM HIDUP" but not "BAYAM".
-const matcher = (q) => {
-  const esc = q.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return esc ? new RegExp(`(^|[^A-Z0-9])${esc}`, "i") : null;
-};
 
 function store(key, val) {
   try {
@@ -416,11 +411,11 @@ async function renderFama() {
     ? t("fama.window", { n: w.days, from: shortDate(w.from), to: fmtDate(w.to), few: FEW() })
     : "";
 
-  const m = matcher($("fama-search").value);
+  const q = $("fama-search").value; // Malay, Chinese or English (names.js)
   const src = fs.district ? famaDist.items : fama.items;
   const all = src.filter((e) => e.level === fs.level && (e.state || "") === fs.state && (e.district || "") === fs.district);
   const catOk = (e) => !fs.cat || (fs.cat === "fav" ? favs.has(itemKey(e)) : e.category === fs.cat);
-  const rows = all.filter((e) => catOk(e) && (!m || m.test(e.item)));
+  const rows = all.filter((e) => catOk(e) && nameMatches(e.item, q));
   rows.sort((a, b) => (favs.has(itemKey(b)) - favs.has(itemKey(a))) || a.item.localeCompare(b.item));
   list.replaceChildren(...rows.slice(0, LIST_LIMIT).map((e) =>
     el("li", {}, el("button", { type: "button", class: "rowbtn", onclick: () => openFamaDetail(e) },
@@ -568,8 +563,8 @@ let pcItems = [];
 
 function renderPc() {
   const state = $("pc-state").value;
-  const m = matcher($("pc-search").value);
-  const rows = pcItems.filter((r) => r.state === state && (!m || m.test(r.item)));
+  const q = $("pc-search").value;
+  const rows = pcItems.filter((r) => r.state === state && nameMatches(r.item, q));
   $("pc-list").replaceChildren(...rows.map((r) =>
     el("li", {},
       el("div", { class: "it" }, el("b", {}, r.item), el("span", {}, t("kpdn.premises", { u: r.unit, n: r.premises }))),

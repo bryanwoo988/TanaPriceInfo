@@ -35,6 +35,7 @@
 - **语言**：右上角语言选单，三种语言：马来文（BM）、中文（简体）、英文（EN）。第一次打开时先弹出语言选择（English 默认、Bahasa Melayu、中文；不选直接关闭 = 英文），之后记住选择，安装教学在选好语言后才出现。FAMA / KPDN 商品名、州名、县名不翻译。
   所有界面文字在 `web/i18n.js`（`ms`、`zh`、`en` 三份，键必须一致）；HTML 里用 `data-i18n="键"`，JS 里用 `t("键", {变量})`。新增文字时三种语言都要加，缺的会显示马来文。
   更新记录的翻译写在 `web/changelog.json` 的 `title_zh` / `notes_zh` / `title_en` / `notes_en`。
+- **多语言搜索**：FAMA / KPDN 的搜索看得懂中文、英文和马来文（例：香蕉、banana、pisang）。对照表在 `web/names.js`：马来文词语 → 中文 / 英文搜索词，商品名里出现的词都会套用（较具体的词组优先，例如 TEMBIKAI SUSU = 蜜瓜，不算西瓜）。新商品用到未知的词时，在这里加一行即可。
 - **MPOB 计算器**：MPOB 页下方，输入地区、出油率（OER %）和吨数，得出每吨参考价和总额（MPOB 价格 × OER）。
 - **FAMA**：列表显示和上星期比的 ▲▼ %（同一批县比较，两周都至少 3 笔记录才显示）；等级 F.A.Q（一般平均品质）不显示，A/B/C 等真正等级才显示；点产品看 30 天走势（空心点 = 当天少于 3 笔）；☆ 收藏（存在手机里，排在最前，可用"★ Kegemaran"筛选）；"Kongsi harga"分享价格文字。MPOB 页也可分享当天 6 区价格。
 - **安装教学**：第一次在手机浏览器打开时，从底部弹出"加到主屏幕"教学，按手机类型显示：iPhone Safari 步骤、Android Chrome 一键"Pasang sekarang"（不支持时显示选单步骤）、在 Facebook/Instagram 等 app 内打开时先教用 Safari/Chrome 打开。关掉后不再自动出现；已安装（从主屏幕打开）不会出现；电脑不自动出现。Info 页的"Cara pasang di skrin utama"可再打开。

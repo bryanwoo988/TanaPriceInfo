@@ -64,7 +64,7 @@ const STR = {
     "fama.levels": "Peringkat harga", "state": "Negeri", "district": "Daerah", "category": "Kategori",
     "lvl.Ladang": "Ladang", "lvl.Borong": "Borong", "lvl.Runcit": "Runcit",
     "cat.all": "Semua", "cat.fav": "★ Kegemaran", "cat.veg": "Sayur", "cat.fruit": "Buah", "cat.livestock": "Ternakan",
-    "fama.search": "Cari barang… (cth. ayam, cili)",
+    "fama.search": "Cari barang (BM / English / 中文, cth. ayam)",
     "all.states": "Semua negeri", "all.districts": "Semua daerah", "all.malaysia": "Seluruh Malaysia",
     "records.short": "{n} rekod",
     "last.record": "terakhir {d}",
@@ -99,7 +99,7 @@ const STR = {
     "trend.few": "Tidak cukup rekod untuk trend.", "trend.fail": "Trend tidak dapat dimuatkan.",
 
     "kpdn.title": "Harga Runcit (KPDN PriceCatcher)",
-    "kpdn.search": "Cari sayur / buah…",
+    "kpdn.search": "Cari sayur / buah (BM / English / 中文)",
     "kpdn.premises": "{u} · {n} premis",
     "kpdn.note": "Harga tengah (median) daripada premis yang dilaporkan.",
 
@@ -182,7 +182,7 @@ const STR = {
     "fama.levels": "价格层级", "state": "州", "district": "县", "category": "类别",
     "lvl.Ladang": "农场", "lvl.Borong": "批发", "lvl.Runcit": "零售",
     "cat.all": "全部", "cat.fav": "★ 收藏", "cat.veg": "蔬菜", "cat.fruit": "水果", "cat.livestock": "畜禽",
-    "fama.search": "搜索（马来文名，例：ayam）",
+    "fama.search": "搜索商品（中文 / 英文 / 马来文，例：香蕉）",
     "all.states": "全部州", "all.districts": "全部县", "all.malaysia": "全马来西亚",
     "records.short": "{n} 笔",
     "last.record": "最后记录 {d}",
@@ -217,7 +217,7 @@ const STR = {
     "trend.few": "记录不足，无法显示走势。", "trend.fail": "走势加载失败。",
 
     "kpdn.title": "零售价格（KPDN PriceCatcher）",
-    "kpdn.search": "搜索（马来文名，例：bayam）",
+    "kpdn.search": "搜索蔬果（中文 / 英文 / 马来文）",
     "kpdn.premises": "{u} · {n} 家店",
     "kpdn.note": "价格为各店家报价的中位数。",
 
@@ -300,7 +300,7 @@ const STR = {
     "fama.levels": "Price level", "state": "State", "district": "District", "category": "Category",
     "lvl.Ladang": "Farm", "lvl.Borong": "Wholesale", "lvl.Runcit": "Retail",
     "cat.all": "All", "cat.fav": "★ Favourites", "cat.veg": "Vegetables", "cat.fruit": "Fruits", "cat.livestock": "Livestock",
-    "fama.search": "Search (Malay names, e.g. ayam)",
+    "fama.search": "Search (English / Malay / 中文, e.g. banana)",
     "all.states": "All states", "all.districts": "All districts", "all.malaysia": "All Malaysia",
     "records.short": "{n} rec.",
     "last.record": "last {d}",
@@ -335,7 +335,7 @@ const STR = {
     "trend.few": "Not enough records for a trend.", "trend.fail": "Could not load the trend.",
 
     "kpdn.title": "Retail Prices (KPDN PriceCatcher)",
-    "kpdn.search": "Search (Malay names, e.g. bayam)",
+    "kpdn.search": "Search (English / Malay / 中文)",
     "kpdn.premises": "{u} · {n} shops", "kpdn.premises_one": "{u} · 1 shop",
     "kpdn.note": "Median price across the reporting shops.",
 
