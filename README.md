@@ -36,7 +36,7 @@
   所有界面文字在 `web/i18n.js`（`ms`、`zh`、`en` 三份，键必须一致）；HTML 里用 `data-i18n="键"`，JS 里用 `t("键", {变量})`。新增文字时三种语言都要加，缺的会显示马来文。
   更新记录的翻译写在 `web/changelog.json` 的 `title_zh` / `notes_zh` / `title_en` / `notes_en`。
 - **MPOB 计算器**：MPOB 页下方，输入地区、出油率（OER %）和吨数，得出每吨参考价和总额（MPOB 价格 × OER）。
-- **FAMA**：列表显示和上星期比的 ▲▼ %（同一批县比较，两周都至少 3 笔记录才显示）；等级 F.A.Q（一般平均品质）不显示，A/B/C 等真正等级才显示；少于 3 笔记录标"rekod sedikit"；点产品看 30 天走势（空心点 = 当天少于 3 笔）；☆ 收藏（存在手机里，排在最前，可用"★ Kegemaran"筛选）；"Kongsi harga"分享价格文字。MPOB 页也可分享当天 6 区价格。
+- **FAMA**：列表显示和上星期比的 ▲▼ %（同一批县比较，两周都至少 3 笔记录才显示）；等级 F.A.Q（一般平均品质）不显示，A/B/C 等真正等级才显示；点产品看 30 天走势（空心点 = 当天少于 3 笔）；☆ 收藏（存在手机里，排在最前，可用"★ Kegemaran"筛选）；"Kongsi harga"分享价格文字。MPOB 页也可分享当天 6 区价格。
 - **安装教学**：第一次在手机浏览器打开时，从底部弹出"加到主屏幕"教学，按手机类型显示：iPhone Safari 步骤、Android Chrome 一键"Pasang sekarang"（不支持时显示选单步骤）、在 Facebook/Instagram 等 app 内打开时先教用 Safari/Chrome 打开。关掉后不再自动出现；已安装（从主屏幕打开）不会出现；电脑不自动出现。Info 页的"Cara pasang di skrin utama"可再打开。
 - **分享**：Info 页最上面有 QR code（点一下放大）、"Kongsi"（手机分享选单）和"Salin pautan"（复制网址）。
   QR 图是 `web/icons/qr.svg`，内容固定为 `https://bryanwoo988.github.io/TanaPriceInfo/`。**repo 改名或换网址时要重新生成**：
