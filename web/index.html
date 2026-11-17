@@ -80,6 +80,19 @@
       </article>
     </section>
     <section id="tab-info" class="tab" aria-label="Info" hidden>
+      <article class="card share">
+        <h2>Kongsi aplikasi</h2>
+        <p class="small muted">Imbas kod QR dengan kamera telefon untuk buka Harga Harian. Tekan kod untuk besarkan.</p>
+        <button type="button" class="qr" id="qr-btn" aria-label="Besarkan kod QR">
+          <img src="icons/qr.svg" alt="Kod QR ke https://bryanwoo988.github.io/TanaPriceInfo/" width="200" height="200">
+        </button>
+        <p class="share-url" id="share-url">bryanwoo988.github.io/TanaPriceInfo</p>
+        <div class="share-actions">
+          <button type="button" class="btn primary" id="share-btn">Kongsi</button>
+          <button type="button" class="btn" id="copy-btn">Salin pautan</button>
+        </div>
+        <p class="small muted center" id="share-msg" role="status"></p>
+      </article>
       <article class="card">
         <h2>Aplikasi</h2>
         <dl class="kv" id="app-info"></dl>
@@ -99,6 +112,12 @@
   </main>
 
   <dialog id="fama-detail" class="sheet" aria-labelledby="fd-title"></dialog>
+  <dialog id="qr-big" class="qr-big" aria-label="Kod QR besar">
+    <img src="icons/qr.svg" alt="Kod QR ke https://bryanwoo988.github.io/TanaPriceInfo/">
+    <p>Harga Harian</p>
+    <p class="small">bryanwoo988.github.io/TanaPriceInfo</p>
+    <button type="button" class="btn" id="qr-close">Tutup</button>
+  </dialog>
 
   <nav class="tabs" role="tablist">
     <button role="tab" id="t-mpob" aria-selected="true" data-tab="mpob">MPOB<i class="dot" hidden></i></button>

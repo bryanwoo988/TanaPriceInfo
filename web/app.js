@@ -396,6 +396,43 @@ async function loadInfo() {
   }
 }
 
+/* ---------- share the app ---------- */
+const APP_URL = "https://bryanwoo988.github.io/TanaPriceInfo/";
+const SHARE_TEXT = "Harga Harian: harga BTS sawit (MPOB), harga pasaran FAMA dan harga runcit KPDN. Percuma, boleh dipasang di skrin utama telefon.";
+
+function shareMsg(text) {
+  $("share-msg").textContent = text;
+  setTimeout(() => { if ($("share-msg").textContent === text) $("share-msg").textContent = ""; }, 4000);
+}
+
+async function copyLink() {
+  try {
+    await navigator.clipboard.writeText(APP_URL);
+    shareMsg("Pautan disalin.");
+  } catch {
+    // Older browsers / no permission: select the text so the user can copy it.
+    const r = document.createRange(); r.selectNodeContents($("share-url"));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    shareMsg("Tekan lama pada pautan untuk salin.");
+  }
+}
+
+$("share-btn").addEventListener("click", async () => {
+  if (navigator.share) {
+    try { await navigator.share({ title: "Harga Harian", text: SHARE_TEXT, url: APP_URL }); }
+    catch (e) { if (e?.name !== "AbortError") copyLink(); } // user closed the sheet: do nothing
+  } else {
+    copyLink();
+  }
+});
+$("copy-btn").addEventListener("click", copyLink);
+$("qr-btn").addEventListener("click", () => {
+  const d = $("qr-big");
+  if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+});
+$("qr-close").addEventListener("click", () => $("qr-big").close());
+$("qr-big").addEventListener("click", (ev) => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
+
 /* ---------- tabs (bottom) + Info (top-right icon) ---------- */
 const TABS = ["mpob", "fama", "kpdn"];
 const OLD_TABS = { utama: "mpob", runcit: "kpdn" }; // names used before v1.5.0
@@ -484,7 +521,7 @@ setOffline();
 
 /* ---------- updates: new app version and fresh data ---------- */
 // The user is "busy" when a detail sheet is open or they are typing: don't reload under them.
-const busy = () => $("fama-detail").open || ["INPUT", "SELECT"].includes(document.activeElement?.tagName);
+const busy = () => $("fama-detail").open || $("qr-big").open || ["INPUT", "SELECT"].includes(document.activeElement?.tagName);
 
 function applyUpdate() {
   if (!busy()) { location.reload(); return; }

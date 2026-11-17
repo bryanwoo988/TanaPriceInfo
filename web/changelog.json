@@ -1,5 +1,13 @@
 [
   {
+    "version": "1.6.0",
+    "title": "Kongsi aplikasi dengan kod QR",
+    "notes": [
+      "Kad 'Kongsi aplikasi' di Info (ikon kanan atas): kod QR, butang Kongsi dan Salin pautan.",
+      "Tekan kod QR untuk besarkan dan tunjuk kepada orang lain untuk diimbas."
+    ]
+  },
+  {
     "version": "1.5.0",
     "title": "Navigasi baharu: tab MPOB, FAMA dan KPDN",
     "notes": [
