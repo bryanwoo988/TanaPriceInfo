@@ -23,6 +23,7 @@ Usage:
   python scripts/build_site.py
 """
 import csv
+from collections import defaultdict
 import hashlib
 import json
 import math
@@ -174,17 +175,43 @@ def fama() -> tuple[dict, dict, dict]:
                 a[0] += h * n
                 a[1] += n
 
+    # Change vs the previous week, like for like: only districts with prices in BOTH weeks,
+    # each district weighted the same in both weeks (its records in the two weeks together),
+    # so a change in WHICH places reported cannot show up as a price change.
+    pairs = defaultdict(list)  # scope key -> [(now, before, records now, records before)]
+    for k, a in acc.items():
+        level, st, di, *item = k
+        p = prev.get(k)
+        if not di or not p or not p["n"]:
+            continue
+        rec = (a["sum"] / a["n"], p["sum"] / p["n"], a["n"], p["n"])
+        for scope in ((level, "", "", *item), (level, st, "", *item), k):
+            pairs[scope].append(rec)
+
+    def like_for_like(k):
+        recs = pairs.get(k, [])
+        n_now, n_before = sum(r[2] for r in recs), sum(r[3] for r in recs)
+        basis = {"districts": len(recs), "records_now": n_now, "records_before": n_before}
+        if n_now < FAMA_FEW_RECORDS or n_before < FAMA_FEW_RECORDS:
+            return None, basis  # too few records in one of the weeks: no reliable change
+        w = [r[2] + r[3] for r in recs]
+        now = sum(wi * r[0] for wi, r in zip(w, recs)) / sum(w)
+        before = sum(wi * r[1] for wi, r in zip(w, recs)) / sum(w)
+        return round((now - before) / before * 100, 1), basis
+
     def entry(k, a):
         level, state, district, item, grade, unit = k
         price = round(a["sum"] / a["n"], 2)
         p = prev.get(k)
         prev_price = round(p["sum"] / p["n"], 2) if p and p["n"] else None
+        change, basis = like_for_like(k)
         return {"level": level, "state": state or None, "district": district or None,
                 "item": item, "grade": grade, "unit": unit, "category": a["category"],
                 "price": price, "records": a["n"], "latest_date": a["latest"],
                 "few_records": a["n"] < FAMA_FEW_RECORDS,
-                "prev_price": prev_price,
-                "change_pct": round((price - prev_price) / prev_price * 100, 1) if prev_price else None}
+                "prev_price": prev_price,  # plain average of the previous week (all places)
+                "change_pct": change,      # like-for-like, see above; null when not reliable
+                "change_basis": basis}
 
     order = {lvl: i for i, lvl in enumerate(FAMA_LEVELS)}
     keys = sorted(acc, key=lambda k: (order.get(k[0], 9), k[1], k[2], k[3], k[4]))

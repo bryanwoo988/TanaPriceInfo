@@ -267,6 +267,10 @@ const fs = {
 // "NEGERI SEMBILAN" -> "Negeri Sembilan", "W.P. KUALA LUMPUR" -> "W.P. Kuala Lumpur"
 const tc = (s) => (s ? s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : s);
 const itemKey = (e) => `${e.item}|${e.grade}|${e.unit}`;
+// F.A.Q (fair average quality) is the grade of almost every item, so it is not shown;
+// real grades (e.g. eggs A / B / C) are.
+const FAQ = "F.A.Q";
+const gradeUnit = (e) => (e.grade && e.grade !== FAQ ? `${e.grade} · ${e.unit}` : e.unit);
 const shortDate = (iso) => fmtDate(iso, false);
 const locLabel = (st, di) => (di ? `${tc(di)}, ${tc(st)}` : st ? tc(st) : t("all.malaysia"));
 
@@ -363,7 +367,7 @@ async function renderFama() {
     el("li", {}, el("button", { type: "button", class: "rowbtn", onclick: () => openFamaDetail(e) },
       el("div", { class: "it" },
         el("b", {}, favs.has(itemKey(e)) ? el("span", { class: "star on", "aria-label": t("fav") }, "★ ") : null, e.item),
-        el("span", {}, `${e.grade} · ${e.unit}`)),
+        el("span", {}, gradeUnit(e))),
       el("div", { class: "pr" }, el("b", {}, `RM ${rm(e.price)}`), changeTag(e),
         el("span", {}, t("records", { n: e.records }) + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : "")),
         fewTag(e))))));
@@ -378,7 +382,7 @@ function famaShareText(e, chain) {
   const w = fama.window;
   const lines = chain.filter(([, x]) => x).map(([l, x]) =>
     `${lvlName(l)}: RM ${rm(x.price)}${x.records < FEW() ? t("share.few") : ""}`);
-  return `${e.item} (${e.grade}, RM/${e.unit})\n${locLabel(fs.state, fs.district)}\n${lines.join("\n")}\n` +
+  return `${e.item} (${e.grade && e.grade !== FAQ ? `${e.grade}, ` : ""}RM/${e.unit})\n${locLabel(fs.state, fs.district)}\n${lines.join("\n")}\n` +
     (w ? `${t("share.window", { n: w.days, from: shortDate(w.from), to: fmtDate(w.to) })}\n` : "") +
     `\nHarga Harian: ${APP_URL}`;
 }
@@ -438,7 +442,7 @@ async function openFamaDetail(e) {
   dlg.replaceChildren(
     el("div", { class: "sheet-head" },
       el("div", {}, el("h3", { id: "fd-title" }, e.item),
-        el("p", { class: "small muted" }, `${e.grade} · RM / ${e.unit} · ${locLabel(fs.state, fs.district)}`)),
+        el("p", { class: "small muted" }, `${e.grade && e.grade !== FAQ ? `${e.grade} · ` : ""}RM / ${e.unit} · ${locLabel(fs.state, fs.district)}`)),
       el("div", { class: "head-btns" }, star,
         el("button", { type: "button", class: "close", "aria-label": t("close"), onclick: () => dlg.close() }, "✕"))),
     el("h4", {}, t("chain")),
@@ -450,6 +454,7 @@ async function openFamaDetail(e) {
     el("h4", {}, fs.state ? t("by.district", { st: tc(fs.state), lvl: lvlName(fs.level) }) : t("by.state", { lvl: lvlName(fs.level) })),
     peers.length ? peerList : el("p", { class: "small muted" }, t("no.peers")),
     el("button", { type: "button", class: "btn primary wide", onclick: () => shareText(famaShareText(e, chain)) }, t("share.price")),
+    e.grade === FAQ ? el("p", { class: "small muted" }, t("faq.note")) : null,
     el("p", { class: "small muted" },
       w ? t("window.short", { n: w.days, from: shortDate(w.from), to: fmtDate(w.to) }) : "",
       el("a", { href: fama.sources?.fama?.url || "https://www.fama.gov.my/harga-pasaran-terkini", target: "_blank", rel: "noopener" }, t("src.check", { s: "FAMA" }))),
