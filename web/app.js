@@ -800,6 +800,49 @@ function maybeShowInstallGuide() {
   }, 1500); // let the prices appear first
 }
 
+/* ---------- bottom sheets: swipe down to close ---------- */
+// From the top of a sheet (not scrolled), drag down: the sheet follows the finger;
+// release past 110 px or with a quick flick to close, otherwise it springs back.
+// Horizontal drags (e.g. scrubbing a chart) are left alone.
+function enableSwipeClose(dlg) {
+  let y0 = null, x0 = 0, t0 = 0, dy = 0, active = false;
+  const reset = () => { dlg.style.transition = ""; dlg.style.transform = ""; };
+  dlg.addEventListener("touchstart", (e) => {
+    y0 = null;
+    if (e.touches.length !== 1 || dlg.scrollTop > 0) return;
+    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; t0 = Date.now(); dy = 0; active = false;
+  }, { passive: true });
+  dlg.addEventListener("touchmove", (e) => {
+    if (y0 == null) return;
+    const d = e.touches[0].clientY - y0, dx = e.touches[0].clientX - x0;
+    if (!active) {
+      if (d > 8 && d > Math.abs(dx)) active = true;            // clearly downwards
+      else if (d < -4 || Math.abs(dx) > 8) { y0 = null; return; } // scroll up or sideways: not ours
+      else return;
+    }
+    e.preventDefault(); // keep the page from scrolling / bouncing while dragging the sheet
+    dy = Math.max(0, d);
+    dlg.style.transition = "none";
+    dlg.style.transform = `translateY(${dy}px)`;
+  }, { passive: false });
+  dlg.addEventListener("touchend", () => {
+    if (y0 == null || !active) { y0 = null; return; }
+    y0 = null;
+    const fast = dy / Math.max(1, Date.now() - t0) > 0.6;
+    dlg.style.transition = "transform .2s ease-out";
+    if (dy > 110 || (fast && dy > 30)) {
+      dlg.style.transform = "translateY(100%)";
+      setTimeout(() => { dlg.close(); reset(); }, 180);
+    } else {
+      dlg.style.transform = "";
+      setTimeout(reset, 220);
+    }
+  });
+  dlg.addEventListener("touchcancel", () => { y0 = null; active = false; reset(); });
+  dlg.addEventListener("close", reset);
+}
+for (const id of ["fama-detail", "install-guide", "lang-chooser"]) enableSwipeClose($(id));
+
 /* ---------- tabs (bottom) + Info (top-right icon) ---------- */
 const TABS = ["mpob", "fama", "kpdn"];
 const OLD_TABS = { utama: "mpob", runcit: "kpdn" }; // names used before v1.5.0
