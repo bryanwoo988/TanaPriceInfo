@@ -111,7 +111,7 @@ final data = jsonDecode(utf8.decode(r.bodyBytes));
 final north = data['mpob']['prices']['north'];   // double 或 null
 ```
 
-React Native 例子：
+React Native：完整的现成代码（请求、离线缓存、新鲜度、示范页面）在 [`examples/react-native/`](examples/react-native/)。最简单的读法：
 
 ```js
 const data = await (await fetch('https://bryanwoo988.github.io/TanaPriceInfo/api/latest.json')).json();
