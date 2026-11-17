@@ -1,5 +1,26 @@
 [
   {
+    "version": "1.12.0",
+    "title": "▲▼ lebih tepat; F.A.Q disembunyikan",
+    "notes": [
+      "▲▼ kini hanya membandingkan daerah yang ada harga dalam kedua-dua minggu, supaya perubahan tempat yang melapor tidak kelihatan seperti naik atau turun harga.",
+      "▲▼ tidak dipaparkan jika kurang 3 rekod dalam mana-mana minggu.",
+      "Gred F.A.Q (kualiti purata biasa) tidak lagi dipaparkan dalam senarai; gred sebenar seperti telur A / B / C masih dipaparkan."
+    ],
+    "title_zh": "▲▼ 更准确；不再显示 F.A.Q",
+    "notes_zh": [
+      "▲▼ 只比较两周都有报价的县，避免“报价地点改变”被误当成涨跌。",
+      "任何一周少于 3 笔记录时，不显示 ▲▼。",
+      "列表不再显示 F.A.Q（一般平均品质）；鸡蛋 A / B / C 等真正的等级照常显示。"
+    ],
+    "title_en": "More accurate ▲▼; F.A.Q hidden",
+    "notes_en": [
+      "▲▼ now compares only districts with prices in both weeks, so a change in which places reported no longer looks like a price rise or fall.",
+      "▲▼ is not shown when either week has fewer than 3 records.",
+      "The F.A.Q grade (fair average quality) is no longer shown in the list; real grades such as eggs A / B / C still are."
+    ]
+  },
+  {
     "version": "1.11.0",
     "title": "Pilih bahasa semasa kali pertama dibuka",
     "notes": [
