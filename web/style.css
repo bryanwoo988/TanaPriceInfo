@@ -355,3 +355,10 @@ select:disabled { opacity: .55; }
 .peers .pval small { display: block; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .list .pr .meta .chg.up { color: var(--up); }
 .list .pr .meta .chg.down { color: var(--down); }
+
+/* ---------- price chain levels are tappable ---------- */
+button.lvl { font: inherit; color: inherit; cursor: pointer; }
+button.lvl:not(.cur):not(:disabled):active { background: var(--line); }
+button.lvl:disabled { opacity: .45; cursor: default; }
+.chain-hint { margin: 6px 0 0; }
+button.lvl { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }

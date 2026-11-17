@@ -399,7 +399,18 @@ async function openFamaDetail(e) {
   const lad = chain[0][1]?.price, run = chain[2][1]?.price;
   const chainBox = el("div", { class: "chain" }, ...chain.flatMap(([l, x], i) => [
     i ? el("span", { class: "arrow", "aria-hidden": "true" }, "→") : null,
-    el("div", { class: `lvl${l === fs.level ? " cur" : ""}` },
+    // Each level is a button: tap it to switch the trend and the place comparison
+    // (and the list behind the sheet) to that level.
+    el("button", {
+      type: "button", class: `lvl${l === fs.level ? " cur" : ""}`, "aria-pressed": String(l === fs.level),
+      ...(x ? {} : { disabled: "" }),
+      onclick: () => {
+        if (l === fs.level) return;
+        fs.level = l; store("fama-level", l);
+        renderFamaControls(); renderFama();
+        openFamaDetail(e);
+      },
+    },
       el("span", { class: "small muted" }, lvlName(l)),
       el("b", {}, x ? rm(x.price) : "—"),
       el("span", { class: "small muted" }, x ? t("records", { n: x.records }) : t("nodata.short")),
@@ -449,6 +460,7 @@ async function openFamaDetail(e) {
         el("button", { type: "button", class: "close", "aria-label": t("close"), onclick: () => dlg.close() }, "✕"))),
     el("h4", {}, t("chain")),
     chainBox,
+    el("p", { class: "small muted chain-hint" }, t("chain.tap")),
     lad && run ? el("p", { class: "small" },
       t("markup", { p: Math.round(((run - lad) / lad) * 100) })) : null,
     el("h4", {}, t("trend.title", { lvl: lvlName(fs.level), loc: fs.state ? tc(fs.state) : t("all.malaysia") })),
@@ -461,7 +473,7 @@ async function openFamaDetail(e) {
       w ? t("window.short", { n: w.days, from: shortDate(w.from), to: fmtDate(w.to) }) : "",
       el("a", { href: fama.sources?.fama?.url || "https://www.fama.gov.my/harga-pasaran-terkini", target: "_blank", rel: "noopener" }, t("src.check", { s: "FAMA" }))),
   );
-  if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+  if (!dlg.open) { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); }
 
   try {
     // (not called "t": that name is the translation function)
