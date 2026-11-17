@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.16.0",
+    "title": "Cari barang dalam BM, English atau 中文",
+    "notes": [
+      "Carian FAMA dan KPDN kini faham nama Bahasa Inggeris dan Cina (cth. banana, 香蕉 → PISANG). Nama barang masih dipaparkan seperti asal.",
+      "Data harga disimpan untuk luar talian sejak kali pertama aplikasi dibuka."
+    ],
+    "title_zh": "用中文、英文或马来文搜索商品",
+    "notes_zh": [
+      "FAMA 和 KPDN 的搜索现在看得懂中文和英文（例：香蕉、banana → PISANG）。商品名照原文显示。",
+      "从第一次打开起就保存价格数据，离线也能看。"
+    ],
+    "title_en": "Search items in English, Malay or Chinese",
+    "notes_en": [
+      "FAMA and KPDN search now understands English and Chinese names (e.g. banana, 香蕉 → PISANG). Item names are still shown as they are.",
+      "Price data is saved for offline use from the very first visit."
+    ]
+  },
+  {
     "version": "1.15.1",
     "title": "Nama di skrin utama: Price Info",
     "notes": [

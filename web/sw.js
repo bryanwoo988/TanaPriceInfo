@@ -8,16 +8,23 @@ const BUILD = "__BUILD__";
 const SHELL = `shell-${BUILD}`;
 const DATA = "data";
 const SHELL_FILES = [
-  "./", "index.html", "style.css", "i18n.js", "app.js", "manifest.webmanifest",
+  "./", "index.html", "style.css", "i18n.js", "names.js", "app.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/qr.svg",
 ];
 const NET_TIMEOUT_MS = 4000;
+
+// Price data saved at install too, so the app works offline right after the first
+// visit (that visit's own requests ran before this worker existed). Best effort.
+const DATA_FILES = ["api/latest.json", "api/mpob.json", "api/fama.json"];
 
 self.addEventListener("install", (e) => {
   // Fetch fresh copies (skip the HTTP cache) so the new version is complete.
   e.waitUntil(
     caches.open(SHELL)
       .then((c) => c.addAll(SHELL_FILES.map((u) => new Request(u, { cache: "reload" }))))
+      .then(() => caches.open(DATA))
+      .then((c) => Promise.all(DATA_FILES.map((u) =>
+        fetch(u, { cache: "no-cache" }).then((r) => (r.ok ? c.put(u, r) : null)).catch(() => null))))
       .then(() => self.skipWaiting()) // take over at once, no waiting for tabs to close
   );
 });
