@@ -1,5 +1,5 @@
 // Offline support: app shell cached on install, data fetched network-first.
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = `shell-${VERSION}`;
 const DATA = "data";
 const SHELL_FILES = [

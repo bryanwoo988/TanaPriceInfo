@@ -18,6 +18,7 @@
   <header class="top">
     <h1>Harga Harian</h1>
     <p id="updated" class="muted">Memuatkan…</p>
+    <p id="health" class="health" hidden></p>
   </header>
 
   <div id="offline" class="banner" hidden>Luar talian — memaparkan data terakhir yang disimpan.</div>
@@ -29,6 +30,7 @@
           <h2>Harga BTS Sawit (MPOB)</h2>
           <span class="muted small">RM / 1% OER</span>
         </div>
+        <div class="src" id="src-mpob"></div>
         <p class="muted small" id="mpob-date"></p>
         <ul class="regions" id="mpob-list"></ul>
         <div class="chart-wrap">
@@ -43,7 +45,7 @@
           <h2>Harga Pasaran (FAMA)</h2>
           <span class="badge" id="fama-badge" hidden>Belum disahkan</span>
         </div>
-        <p class="muted small" id="fama-date"></p>
+        <div class="src" id="src-fama"></div>
         <p class="note small" id="fama-note" hidden>Data FAMA masih disemak. Harga ialah purata dan mungkin tidak tepat.</p>
         <input type="search" id="fama-search" placeholder="Cari barang… (cth. ayam, cili)" autocomplete="off">
         <ul class="list" id="fama-list"></ul>
@@ -56,7 +58,7 @@
         <div class="card-head">
           <h2>Harga Runcit (PriceCatcher)</h2>
         </div>
-        <p class="muted small" id="pc-date"></p>
+        <div class="src" id="src-pricecatcher"></div>
         <div class="row">
           <label class="small muted" for="pc-state">Negeri</label>
           <select id="pc-state"></select>
