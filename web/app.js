@@ -330,7 +330,13 @@ function showTab(name) {
 }
 
 /* ---------- start ---------- */
+const BUILD = "__BUILD__"; // set by scripts/build_site.py, same value as in sw.js
+const DATA_REFRESH_MS = 10 * 60_000;
+let lastLoad = 0;
+
 async function load() {
+  lastLoad = Date.now();
+  famaDist = null; famaDistReq = null; // district prices are re-read when next needed
   try {
     const [latest, mpob, famaData] = await Promise.all(
       [getJSON("api/latest.json"), getJSON("api/mpob.json"), getJSON("api/fama.json")]);
@@ -380,5 +386,41 @@ addEventListener("online", setOffline);
 addEventListener("offline", setOffline);
 setOffline();
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+/* ---------- updates: new app version and fresh data ---------- */
+// The user is "busy" when a detail sheet is open or they are typing: don't reload under them.
+const busy = () => $("fama-detail").open || ["INPUT", "SELECT"].includes(document.activeElement?.tagName);
+
+function applyUpdate() {
+  if (!busy()) { location.reload(); return; }
+  $("update").hidden = false; // banner: tap to reload when ready
+}
+$("update").addEventListener("click", () => location.reload());
+
+if ("serviceWorker" in navigator) {
+  // On a first visit the service worker takes control once: that is an install, not an update.
+  // Every later change of controller means a new version is active.
+  let hasController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hasController) { hasController = true; return; }
+    if (reloading) return;
+    reloading = true;
+    applyUpdate();
+  });
+  navigator.serviceWorker.register("sw.js").then((reg) => {
+    const check = () => reg.update().catch(() => {});
+    // Installed apps are often resumed, not reopened: check whenever they come back.
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") check(); });
+    addEventListener("online", check);
+    setInterval(check, 30 * 60_000);
+  }).catch(() => {});
+}
+
+// Fresh prices when the app comes back after a while (resumed apps do not reload by themselves).
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && Date.now() - lastLoad > DATA_REFRESH_MS && !busy()) load();
+});
+addEventListener("online", () => { if (Date.now() - lastLoad > 60_000) load(); });
+
+$("build").textContent = `Versi ${BUILD}`;
 load();
