@@ -1,5 +1,26 @@
 [
   {
+    "version": "1.14.0",
+    "title": "Carta interaktif",
+    "notes": [
+      "Tekan atau seret pada carta trend (FAMA dan MPOB) untuk lihat tarikh, harga dan bilangan rekod setiap hari.",
+      "Garisan menegak mengikut jari dan melekat pada hari terdekat yang ada data; tatal ke atas/bawah masih berfungsi.",
+      "Di komputer: tuding dengan tetikus, atau guna anak panah kiri/kanan."
+    ],
+    "title_zh": "互动图表",
+    "notes_zh": [
+      "在走势图（FAMA 和 MPOB）上点按或拖动，可看每天的日期、价格和记录笔数。",
+      "竖线跟着手指移动，自动对准最近有数据的一天；上下滑动照样可以滚动页面。",
+      "电脑上：鼠标移到图上，或用左右方向键。"
+    ],
+    "title_en": "Interactive charts",
+    "notes_en": [
+      "Tap or drag on the trend charts (FAMA and MPOB) to see the date, price and number of records for each day.",
+      "A vertical line follows your finger and snaps to the nearest day with data; scrolling up and down still works.",
+      "On a computer: hover with the mouse, or use the left/right arrow keys."
+    ]
+  },
+  {
     "version": "1.13.0",
     "title": "Tukar peringkat dalam butiran barang",
     "notes": [

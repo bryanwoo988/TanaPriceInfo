@@ -20,6 +20,10 @@ const STR = {
   ms: {
     "lang.aria": "Bahasa / 语言 / Language",
     "app.name": "Harga Harian",
+    "chart.hint": "Tekan atau seret pada carta untuk lihat harga setiap hari.",
+    "chart.keys": "Guna anak panah kiri dan kanan untuk tukar hari",
+    "tip.weak": "kurang tepat",
+    "tip.vsprev": "berbanding sebelumnya",
     "info.aria": "Info: versi, rekod kemas kini, sejarah kutipan",
     "loading": "Memuatkan…",
     "updated": "Laman dikemas kini {t}",
@@ -134,6 +138,10 @@ const STR = {
   zh: {
     "lang.aria": "语言 / Bahasa / Language",
     "app.name": "价格情报",
+    "chart.hint": "点按或在图上拖动，可查看每天的价格。",
+    "chart.keys": "用左右方向键切换日期",
+    "tip.weak": "不太准确",
+    "tip.vsprev": "比前一天",
     "info.aria": "资讯：版本、更新记录、收集记录",
     "loading": "加载中…",
     "updated": "页面更新于 {t}",
@@ -248,6 +256,10 @@ const STR = {
   en: {
     "lang.aria": "Language / Bahasa / 语言",
     "app.name": "Price Info",
+    "chart.hint": "Tap or drag on the chart to see each day's price.",
+    "chart.keys": "Use the left and right arrow keys to change the day",
+    "tip.weak": "less reliable",
+    "tip.vsprev": "vs previous",
     "info.aria": "Info: version, update history, collection history",
     "loading": "Loading…",
     "updated": "Page updated {t}",

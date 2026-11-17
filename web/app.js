@@ -136,33 +136,22 @@ function renderMpob(latest) {
 
 function drawChart() {
   const svg = $("mpob-chart");
-  svg.replaceChildren();
   const pts = mpobDays
     .filter((d) => d.status === "ok" && d.prices[selRegion] != null)
     .slice(-CHART_DAYS)
     .map((d) => ({ date: d.date, v: d.prices[selRegion] }));
   $("chart-title").textContent = t("mpob.trend", { r: regionName(selRegion), n: pts.length });
-  if (pts.length < 2) {
-    $("chart-from").textContent = ""; $("chart-to").textContent = "";
-    return;
-  }
-  const W = 320, H = 120, P = 14;
-  let lo = Math.min(...pts.map((p) => p.v)), hi = Math.max(...pts.map((p) => p.v));
-  if (hi - lo < 0.5) { lo -= 0.25; hi += 0.25; }
-  const x = (i) => P + (i * (W - 2 * P)) / (pts.length - 1);
-  const y = (v) => H - P - ((v - lo) * (H - 2 * P)) / (hi - lo);
-  const NS = "http://www.w3.org/2000/svg";
-  const mk = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
-  for (const v of [lo, hi]) {
-    svg.append(mk("line", { class: "gd", x1: P, x2: W - P, y1: y(v), y2: y(v) }));
-    const lbl = mk("text", { x: W - P, y: y(v) - 3, "text-anchor": "end" }); lbl.textContent = v.toFixed(2); svg.append(lbl);
-  }
-  svg.append(mk("polyline", { class: "ln", points: pts.map((p, i) => `${x(i)},${y(p.v)}`).join(" ") }));
+  const geo = lineChart(svg, pts.map((p) => p.v), 120);
+  if (!geo) { $("chart-from").textContent = ""; $("chart-to").textContent = ""; return; }
   const last = pts[pts.length - 1];
-  svg.append(mk("circle", { class: "dot", cx: x(pts.length - 1), cy: y(last.v), r: 3 }));
-  svg.setAttribute("aria-label", t("mpob.trend.aria", { r: regionName(selRegion), v: last.v.toFixed(2) }));
   $("chart-from").textContent = fmtDate(pts[0].date);
   $("chart-to").textContent = fmtDate(last.date);
+  attachScrub(svg.parentElement, svg, geo, (i) => {
+    const prev = pts[i - 1];
+    const d = prev ? pts[i].v - prev.v : null;
+    return tipRow(`RM ${rm(pts[i].v)}`, fmtDate(pts[i].date),
+      d == null || Math.abs(d) < 0.005 ? null : `${d > 0 ? "▲" : "▼"}${Math.abs(d).toFixed(2)} ${t("tip.vsprev")}`);
+  }, t("mpob.trend.aria", { r: regionName(selRegion), v: last.v.toFixed(2) }) + ". " + t("chart.keys"));
 }
 
 /* ---------- MPOB: share today's prices, FFB price calculator ---------- */
@@ -247,8 +236,79 @@ function lineChart(svg, values, H = 120, weak = []) {
   }
   const [li, lv] = pts[pts.length - 1];
   if (!weak[li]) svg.append(mk("circle", { class: "dot", cx: x(li), cy: y(lv), r: 3 }));
-  return true;
+  return { W, H, P, pts: pts.map(([i, v]) => [i, x(i), y(v)]) };
 }
+
+/* ---------- interactive charts: crosshair + tooltip ---------- */
+// Tap / drag (touch) or hover (mouse) anywhere on the chart: a hairline snaps to the
+// nearest day with data and a small card shows that day. Arrow keys work when focused.
+// Vertical drags still scroll the page (touch-action: pan-y).
+function attachScrub(wrap, svg, geo, render, label) {
+  if (!geo) return;
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const vline = mk("line", { class: "xh", y1: geo.P / 2, y2: geo.H - geo.P / 2, visibility: "hidden" });
+  const ring = mk("circle", { class: "xh-dot", r: 4.5, visibility: "hidden" });
+  svg.append(vline, ring);
+  wrap.classList.add("scrub");
+  wrap.querySelector(":scope > .tip")?.remove();
+  const tip = el("div", { class: "tip", role: "status", "aria-live": "polite" });
+  tip.hidden = true;
+  wrap.append(tip);
+  svg.setAttribute("tabindex", "0");
+  if (label) svg.setAttribute("aria-label", label);
+  // The MPOB chart is redrawn in the same <svg>: drop the previous listeners first.
+  svg._scrubAbort?.abort();
+  const ac = new AbortController();
+  svg._scrubAbort = ac;
+  const on = (type, fn) => svg.addEventListener(type, fn, { signal: ac.signal });
+  let cur = -1;
+
+  function show(k) {
+    k = Math.max(0, Math.min(geo.pts.length - 1, k));
+    cur = k;
+    const [i, x, y] = geo.pts[k];
+    for (const [n, v] of [["x1", x], ["x2", x]]) vline.setAttribute(n, v);
+    ring.setAttribute("cx", x); ring.setAttribute("cy", y);
+    vline.setAttribute("visibility", "visible"); ring.setAttribute("visibility", "visible");
+    tip.replaceChildren(...render(i));
+    tip.hidden = false;
+    const w = wrap.getBoundingClientRect(), r = svg.getBoundingClientRect();
+    // Beside the hairline, never on it: the highlighted point stays visible.
+    const px = r.left - w.left + (x / geo.W) * r.width, gap = 10;
+    const left = px > w.width / 2 ? px - tip.offsetWidth - gap : px + gap;
+    tip.style.left = `${Math.max(0, Math.min(w.width - tip.offsetWidth, left))}px`;
+    tip.style.top = `${r.top - w.top}px`;
+  }
+  function hide() {
+    cur = -1; tip.hidden = true;
+    vline.setAttribute("visibility", "hidden"); ring.setAttribute("visibility", "hidden");
+  }
+  function nearest(clientX) {
+    const r = svg.getBoundingClientRect();
+    const xv = ((clientX - r.left) / r.width) * geo.W;
+    let best = 0;
+    geo.pts.forEach(([, x], k) => { if (Math.abs(x - xv) < Math.abs(geo.pts[best][1] - xv)) best = k; });
+    return best;
+  }
+  on("pointerdown", (e) => show(nearest(e.clientX)));
+  on("pointermove", (e) => { if (e.pointerType === "mouse" || e.buttons) show(nearest(e.clientX)); });
+  on("pointerleave", (e) => { if (e.pointerType === "mouse") hide(); });
+  on("focus", () => show(cur >= 0 ? cur : geo.pts.length - 1));
+  on("blur", hide);
+  on("keydown", (e) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      show((cur < 0 ? geo.pts.length - 1 : cur) + (e.key === "ArrowLeft" ? -1 : 1));
+    } else if (e.key === "Escape") { hide(); }
+  });
+  wrap._hideTip = hide;
+}
+// A tap anywhere else closes an open chart card (touch has no "pointer leaves").
+document.addEventListener("pointerdown", (e) => {
+  for (const w of document.querySelectorAll(".scrub")) if (!w.contains(e.target)) w._hideTip?.();
+});
+const tipRow = (strong, ...rest) => [el("b", {}, strong), ...rest.filter(Boolean).map((r) => el("span", {}, r))];
 
 /* ---------- FAMA ---------- */
 const FAMA_LEVELS = ["Ladang", "Borong", "Runcit"];
@@ -484,14 +544,17 @@ async function openFamaDetail(e) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("viewBox", "0 0 320 110"); svg.setAttribute("preserveAspectRatio", "none");
     svg.setAttribute("class", "chart"); svg.setAttribute("role", "img");
-    if (vals && lineChart(svg, vals, 110, weak)) {
+    const geo = vals && lineChart(svg, vals, 110, weak);
+    if (geo) {
       const days = vals.filter((v) => v != null).length;
       const nWeak = weak.filter(Boolean).length;
-      svg.setAttribute("aria-label", t("trend.aria", { item: e.item, n: days }));
       trendBox.replaceChildren(svg,
         el("div", { class: "chart-axis small muted" }, el("span", {}, shortDate(trend.dates[0])), el("span", {}, shortDate(trend.dates[trend.dates.length - 1]))),
         el("p", { class: "small muted" }, t("trend.days", { d: days, n: vals.length }) +
-          (nWeak ? t("trend.weak", { few: FEW() }) : "")));
+          (nWeak ? t("trend.weak", { few: FEW() }) : "") + (LANG === "zh" ? "" : " ") + t("chart.hint")));
+      attachScrub(trendBox, svg, geo, (i) => tipRow(`RM ${rm(raw[i][0])}`, fmtDate(trend.dates[i]),
+        t("records", { n: raw[i][1] }) + (raw[i][1] < FEW() ? ` · ${t("tip.weak")}` : "")),
+        t("trend.aria", { item: e.item, n: days }) + ". " + t("chart.keys"));
     } else {
       trendBox.replaceChildren(el("p", { class: "small muted" }, t("trend.few")));
     }
