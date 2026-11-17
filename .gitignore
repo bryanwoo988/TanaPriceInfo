@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+# Raw Power BI JSON is large; GitHub Actions keeps it as a downloadable artifact instead.
+data/raw/
+data/fama_debug.png
+.claude-flow/
+.swarm/

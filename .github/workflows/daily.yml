@@ -1,0 +1,84 @@
+name: Harga harian (FAMA + MPOB)
+
+on:
+  schedule:
+    - cron: "13 10 * * *"   # 10:13 UTC = 6:13 pm Malaysia time, every day
+  workflow_dispatch:        # "Run workflow" button (works from the GitHub mobile app too)
+    inputs:
+      mpob_backfill:
+        description: "MPOB backfill from month (YYYY-MM), blank = skip"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: harga-harian
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: MPOB FFB price
+        id: mpob
+        continue-on-error: true
+        env:
+          BACKFILL: ${{ github.event.inputs.mpob_backfill }}
+        run: |
+          if [ -n "$BACKFILL" ]; then
+            python scripts/mpob_ffb.py --backfill "$BACKFILL"
+          else
+            python scripts/mpob_ffb.py
+          fi
+
+      - name: FAMA market price
+        id: fama
+        continue-on-error: true
+        run: python scripts/fama_prices.py
+
+      - name: PriceCatcher backup
+        id: pc
+        continue-on-error: true
+        run: python scripts/pricecatcher_sayur.py
+
+      # Raw Power BI JSON is not committed (too big). Download it from the
+      # run page ("Artifacts") if FAMA needs fixing.
+      - name: Keep raw FAMA data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fama-raw
+          path: data/raw/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Save data to repo
+        run: |
+          git config user.name "harga-bot"
+          git config user.email "harga-bot@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet && exit 0
+          git commit -m "data: $(TZ=Asia/Kuala_Lumpur date +%F)"
+          git pull --rebase
+          git push
+
+      # Fail the run (GitHub emails you) if any source failed.
+      - name: Check results
+        if: steps.mpob.outcome == 'failure' || steps.fama.outcome == 'failure' || steps.pc.outcome == 'failure'
+        run: |
+          echo "MPOB: ${{ steps.mpob.outcome }}  FAMA: ${{ steps.fama.outcome }}  PriceCatcher: ${{ steps.pc.outcome }}"
+          exit 1
