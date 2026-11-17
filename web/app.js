@@ -433,6 +433,112 @@ $("qr-btn").addEventListener("click", () => {
 $("qr-close").addEventListener("click", () => $("qr-big").close());
 $("qr-big").addEventListener("click", (ev) => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
 
+/* ---------- install guide (first open) ---------- */
+// Shown once on the first open in a browser; never inside the installed app.
+// Reopen any time from Info -> "Cara pasang di skrin utama".
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const UA = navigator.userAgent;
+const isIOS = /iPhone|iPad|iPod/.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(UA);
+// In-app browsers of social apps cannot install web apps.
+const inAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line\/|musical_ly|BytedanceWebview|Twitter|Snapchat/i.test(UA);
+let installEvent = null; // Chrome/Edge on Android: one-tap install
+
+addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();          // we show our own guide instead of the mini-bar
+  installEvent = e;
+  if ($("install-guide").open) renderInstallGuide();
+});
+addEventListener("appinstalled", () => {
+  installEvent = null;
+  store("install-guide-seen", "installed");
+  if ($("install-guide").open) $("install-guide").close();
+});
+
+const SHARE_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11H5v10h14V11h-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+const MENU_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg>';
+const ADD_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+function step(n, html) {
+  const li = el("li", {}, el("span", { class: "n" }, String(n)));
+  const t = el("span", { class: "t" }); t.innerHTML = html; // static text + our own icons only
+  li.append(t);
+  return li;
+}
+
+function renderInstallGuide() {
+  const d = $("install-guide");
+  const close = () => { store("install-guide-seen", "1"); d.close(); };
+  let body;
+  if (inAppBrowser) {
+    body = [
+      el("p", {}, "Pelayar dalam aplikasi ini tidak boleh memasang Harga Harian. Buka dalam pelayar biasa dahulu:"),
+      el("ol", { class: "steps" },
+        step(1, `Tekan menu ${MENU_ICON} atau <b>⋯</b> di penjuru atas.`),
+        step(2, `Pilih <b>Buka dalam ${isIOS ? "Safari" : "Chrome"}</b> (atau <i>Open in browser</i>).`),
+        step(3, "Kemudian ikut panduan pemasangan yang muncul.")),
+    ];
+  } else if (installEvent) {
+    body = [
+      el("p", {}, "Pasang Harga Harian di skrin utama untuk buka terus seperti aplikasi biasa, termasuk tanpa internet."),
+      el("button", { type: "button", class: "btn primary wide", onclick: async () => {
+        const ev = installEvent; installEvent = null;
+        ev.prompt();
+        const { outcome } = await ev.userChoice.catch(() => ({}));
+        if (outcome === "accepted") close(); else renderInstallGuide();
+      } }, "Pasang sekarang"),
+    ];
+  } else if (isIOS) {
+    body = [
+      el("p", {}, "Tambah Harga Harian ke skrin utama untuk buka terus seperti aplikasi biasa, termasuk tanpa internet."),
+      el("ol", { class: "steps" },
+        step(1, `Dalam <b>Safari</b>, tekan butang Kongsi ${SHARE_ICON} (di bawah, atau dalam menu <b>⋯</b>).`),
+        step(2, `Tatal ke bawah dan pilih <b>Tambah ke Skrin Utama</b> ${ADD_ICON} <span class="muted">(Add to Home Screen)</span>.`),
+        step(3, "Tekan <b>Tambah</b> di penjuru kanan atas.")),
+    ];
+  } else if (isAndroid) {
+    body = [
+      el("p", {}, "Pasang Harga Harian di skrin utama untuk buka terus seperti aplikasi biasa, termasuk tanpa internet."),
+      el("ol", { class: "steps" },
+        step(1, `Dalam <b>Chrome</b>, tekan menu ${MENU_ICON} di penjuru kanan atas.`),
+        step(2, `Pilih <b>Pasang apl</b> atau <b>Tambah ke skrin utama</b> <span class="muted">(Install app / Add to Home screen)</span>.`),
+        step(3, "Tekan <b>Pasang</b>.")),
+    ];
+  } else {
+    body = [
+      el("p", {}, "Buka laman ini di telefon dan tambah ke skrin utama. Di komputer, pelayar Chrome atau Edge menunjukkan butang Pasang di bar alamat."),
+    ];
+  }
+  d.replaceChildren(
+    el("div", { class: "sheet-head" },
+      el("div", {}, el("h3", { id: "ig-title", tabindex: "-1", autofocus: "" }, "Pasang di skrin utama"),
+        el("p", { class: "small muted" }, "Percuma · tiada iklan · tiada pendaftaran")),
+      el("button", { type: "button", class: "close", "aria-label": "Tutup", onclick: close }, "✕")),
+    ...body,
+    el("button", { type: "button", class: "btn wide later", onclick: close }, "Nanti"),
+  );
+}
+
+function openInstallGuide() {
+  renderInstallGuide();
+  const d = $("install-guide");
+  if (d.open) return;
+  if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+}
+$("install-guide").addEventListener("close", () => store("install-guide-seen", store("install-guide-seen") || "1"));
+$("install-guide").addEventListener("click", (ev) => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
+$("install-help").hidden = isStandalone();
+$("install-help").addEventListener("click", openInstallGuide);
+
+function maybeShowInstallGuide() {
+  if (isStandalone() || store("install-guide-seen")) return;
+  setTimeout(() => {
+    // Phones (and desktop browsers that offer one-tap install); not a plain desktop.
+    const useful = isIOS || isAndroid || inAppBrowser || installEvent;
+    if (useful && !isStandalone() && !document.querySelector("dialog[open]")) openInstallGuide();
+  }, 1500); // let the prices appear first
+}
+
 /* ---------- tabs (bottom) + Info (top-right icon) ---------- */
 const TABS = ["mpob", "fama", "kpdn"];
 const OLD_TABS = { utama: "mpob", runcit: "kpdn" }; // names used before v1.5.0
@@ -521,7 +627,7 @@ setOffline();
 
 /* ---------- updates: new app version and fresh data ---------- */
 // The user is "busy" when a detail sheet is open or they are typing: don't reload under them.
-const busy = () => $("fama-detail").open || $("qr-big").open || ["INPUT", "SELECT"].includes(document.activeElement?.tagName);
+const busy = () => $("fama-detail").open || $("qr-big").open || $("install-guide").open || ["INPUT", "SELECT"].includes(document.activeElement?.tagName);
 
 function applyUpdate() {
   if (!busy()) { location.reload(); return; }
@@ -556,4 +662,4 @@ document.addEventListener("visibilitychange", () => {
 addEventListener("online", () => { if (Date.now() - lastLoad > 60_000) load(); });
 
 $("build").textContent = `Versi ${VERSION} · ${BUILD}`;
-load();
+load().then(maybeShowInstallGuide);
