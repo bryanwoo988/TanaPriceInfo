@@ -217,7 +217,11 @@ select:disabled { opacity: .55; }
 .table-wrap { overflow-x: auto; margin-top: 6px; }
 .hist { width: 100%; border-collapse: collapse; font-size: 14px; }
 .hist th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; padding: 6px 6px 6px 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
-.hist td { padding: 7px 6px 7px 0; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hist td { padding: 7px 6px 7px 0; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; vertical-align: top; }
+.hist td .t { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
+.hist td.ok b, .hist td.bad b { font-size: 16px; }
+.hist th:not(:first-child), .hist td:not(.when):not([colspan]) { text-align: center; }
+.hist th:last-child { font-size: 11px; }
 .hist td.ok { color: var(--up); font-weight: 700; }
 .hist td.bad { color: var(--down); font-weight: 700; }
 .hist .note-row td { white-space: normal; padding-top: 0; }

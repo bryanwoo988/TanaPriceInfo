@@ -358,19 +358,21 @@ function renderHistory(items) {
   const list = [...runs.values()].sort((a, b) => (a.time < b.time ? 1 : -1));
   const TRIG = { auto: "Auto", manual: "Manual", local: "Lain" };
   const cell = (h) => !h ? el("td", { class: "na" }, "—")
-    : el("td", { class: h.ok ? "ok" : "bad", title: h.note || "" }, h.ok ? "✓" : "✗",
-      el("span", { class: "small muted" }, ` ${h.time.slice(11, 16)}`));
-  const head = el("tr", {}, ...["Masa", "Jenis", "MPOB", "FAMA", "PriceCatcher"].map((t) => el("th", {}, t)));
+    : el("td", { class: h.ok ? "ok" : "bad", title: h.note || "" },
+      el("b", {}, h.ok ? "✓" : "✗"), el("span", { class: "t" }, h.time.slice(11, 16)));
+  const head = el("tr", {}, ...["Masa", "MPOB", "FAMA", "PriceCatcher"].map((t) => el("th", {}, t)));
   const body = list.flatMap((r) => {
     const notes = Object.entries(r.src).filter(([, h]) => h.note).map(([k, h]) => `${SHORT[k] || k}: ${h.note}`);
     return [
-      el("tr", {}, el("td", {}, fullTime(r.time)), el("td", {}, TRIG[r.trigger] || r.trigger || "—"),
+      el("tr", {},
+        el("td", { class: "when" }, el("b", {}, fullTime(r.time).replace(/ \d{4},/, ",")),
+          el("span", { class: "t" }, `${TRIG[r.trigger] || r.trigger || "—"} · ${r.time.slice(0, 4)}`)),
         cell(r.src.mpob), cell(r.src.fama), cell(r.src.pricecatcher)),
-      notes.length ? el("tr", { class: "note-row" }, el("td", { colspan: "5", class: "small muted" }, notes.join(" · "))) : null,
+      notes.length ? el("tr", { class: "note-row" }, el("td", { colspan: "4", class: "small muted" }, notes.join(" · "))) : null,
     ];
   });
   $("hist").replaceChildren(el("thead", {}, head),
-    el("tbody", {}, ...(body.length ? body : [el("tr", {}, el("td", { colspan: "5", class: "muted" }, "Tiada rekod lagi."))])));
+    el("tbody", {}, ...(body.length ? body : [el("tr", {}, el("td", { colspan: "4", class: "muted" }, "Tiada rekod lagi."))])));
 }
 
 async function loadInfo() {
