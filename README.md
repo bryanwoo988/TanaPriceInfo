@@ -32,6 +32,8 @@
 - 界面用马来文。底部三个标签：**MPOB**（油棕 FFB 价：6 区、涨跌、走势图）、**FAMA**（Ladang/Borong/Runcit、州、县、分类、搜索；点产品看三个层级和各州/各县比较）、**KPDN**（PriceCatcher 按州零售价）。右上角 ⓘ 是 Info（版本、更新记录、抓取历史）。某个来源过期或抓取失败时，它的标签旁有红点。
 - 手机加到主屏幕：iPhone 用 Safari → 分享 → 「添加到主屏幕」；Android 用 Chrome → 菜单 → 「安装应用」。
 - 离线时显示上次打开时的价格。
+- **MPOB 计算器**：MPOB 页下方，输入地区、出油率（OER %）和吨数，得出每吨参考价和总额（MPOB 价格 × OER）。
+- **FAMA**：列表显示和上星期比的 ▲▼ %；少于 3 笔记录标"rekod sedikit"；点产品看 30 天走势（空心点 = 当天少于 3 笔）；☆ 收藏（存在手机里，排在最前，可用"★ Kegemaran"筛选）；"Kongsi harga"分享价格文字。MPOB 页也可分享当天 6 区价格。
 - **安装教学**：第一次在手机浏览器打开时，从底部弹出"加到主屏幕"教学，按手机类型显示：iPhone Safari 步骤、Android Chrome 一键"Pasang sekarang"（不支持时显示选单步骤）、在 Facebook/Instagram 等 app 内打开时先教用 Safari/Chrome 打开。关掉后不再自动出现；已安装（从主屏幕打开）不会出现；电脑不自动出现。Info 页的"Cara pasang di skrin utama"可再打开。
 - **分享**：Info 页最上面有 QR code（点一下放大）、"Kongsi"（手机分享选单）和"Salin pautan"（复制网址）。
   QR 图是 `web/icons/qr.svg`，内容固定为 `https://bryanwoo988.github.io/TanaPriceInfo/`。**repo 改名或换网址时要重新生成**：
@@ -74,7 +76,9 @@ PWA 的 **Info** 页显示这三样，所有时间都是马来西亚时间，不
 - `schema` 是格式版本号。以后如果有不兼容的改动，这个数字会加 1。
 - MPOB 的 `status`：`ok`、`NT`（没交易）、`PH`（公共假期）。
 - FAMA 价格是最近 7 天（`window.from` 到 `window.to`）的平均，按 FAMA 记录笔数加权，和 FAMA 网站的 "Harga Purata" 算法一样（FAMA 网站默认是 30 天）。
-  每一项：`level`（Ladang/Borong/Runcit）、`state`、`district`（`null` = 全部）、`item`、`grade`、`unit`、`category`、`price`、`records`（几笔记录）、`latest_date`（窗口内最新一笔的日期）。
+  每一项：`level`（Ladang/Borong/Runcit）、`state`、`district`（`null` = 全部）、`item`、`grade`、`unit`、`category`、`price`、`records`（几笔记录）、`latest_date`（窗口内最新一笔的日期）、
+  `few_records`（少于 `window.few_records_below` 笔，平均不太可靠）、`prev_price`（前 7 天的平均）、`change_pct`（和前 7 天比的 %，没有前一周数据时为 `null`）。
+- `api/fama_trend.json`：最近 30 天每天的平均价，全国和各州（县太少，不提供）。`series` 的键是 `层级|州|作物|等级|单位`（州空白 = 全国），值按 `dates` 排列，每天是 `[价格, 记录笔数]` 或 `null`（当天没有记录）。
 - 每天大约 6:20pm 更新一次，app 不需要频繁请求。
 
 每个文件都有 `sources`，用来核对来源和判断数据新不新：
