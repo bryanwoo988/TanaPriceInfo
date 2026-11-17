@@ -171,7 +171,7 @@ let mpobLatest = null;
 function mpobShareText() {
   const m = mpobLatest;
   const lines = REGIONS.map((k) => `${regionName(k)}: RM ${rm(m.prices?.[k])}`);
-  return `${t("mpob.share", { d: fmtDate(m.date) })}\n${lines.join("\n")}\n\nHarga Harian: ${APP_URL}`;
+  return `${t("mpob.share", { d: fmtDate(m.date) })}\n${lines.join("\n")}\n\n${t("app.name")}: ${APP_URL}`;
 }
 
 function renderCalc() {
@@ -386,7 +386,7 @@ function famaShareText(e, chain) {
     `${lvlName(l)}: RM ${rm(x.price)}`);
   return `${e.item} (${e.grade && e.grade !== FAQ ? `${e.grade}, ` : ""}RM/${e.unit})\n${locLabel(fs.state, fs.district)}\n${lines.join("\n")}\n` +
     (w ? `${t("share.window", { n: w.days, from: shortDate(w.from), to: fmtDate(w.to) })}\n` : "") +
-    `\nHarga Harian: ${APP_URL}`;
+    `\n${t("app.name")}: ${APP_URL}`;
 }
 
 async function openFamaDetail(e) {
@@ -605,7 +605,7 @@ async function copyLink() {
 
 $("share-btn").addEventListener("click", async () => {
   if (navigator.share) {
-    try { await navigator.share({ title: "Harga Harian", text: t("share.app"), url: APP_URL }); }
+    try { await navigator.share({ title: t("app.name"), text: t("share.app"), url: APP_URL }); }
     catch (e) { if (e?.name !== "AbortError") copyLink(); } // user closed the sheet: do nothing
   } else {
     copyLink();

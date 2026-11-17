@@ -1,5 +1,20 @@
 [
   {
+    "version": "1.12.4",
+    "title": "Nama aplikasi ikut bahasa",
+    "notes": [
+      "Nama aplikasi kini ikut bahasa: Harga Harian (BM), 价格情报 (中文), Price Info (English)."
+    ],
+    "title_zh": "应用名称随语言显示",
+    "notes_zh": [
+      "应用名称随语言显示：Harga Harian（马来文）、价格情报（中文）、Price Info（英文）。"
+    ],
+    "title_en": "App name follows the language",
+    "notes_en": [
+      "The app name now follows the language: Harga Harian (BM), 价格情报 (中文), Price Info (English)."
+    ]
+  },
+  {
     "version": "1.12.3",
     "title": "Tarikh rekod terakhir lebih jelas",
     "notes": [
