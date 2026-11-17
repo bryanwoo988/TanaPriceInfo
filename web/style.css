@@ -305,7 +305,8 @@ select:disabled { opacity: .55; }
   max-width: calc(100% - 32px); z-index: 50; box-shadow: 0 4px 16px rgba(0,0,0,.25);
 }
 .toast[hidden] { display: none; }
-.list .pr .chg { display: inline-block; margin-left: 6px; font-size: 12px; }
+.list .pr b { display: block; }
+.list .pr .meta .chg { display: inline; margin: 0 6px 0 0; font-size: 12px; font-weight: 600; }
 .peers .star.on { color: #d49b00; }
 .head-btns { display: flex; gap: 8px; flex: none; }
 .star-btn { font-size: 20px; }
@@ -352,3 +353,5 @@ select:disabled { opacity: .55; }
 }
 .peers .pval { text-align: right; line-height: 1.15; }
 .peers .pval small { display: block; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.list .pr .meta .chg.up { color: var(--up); }
+.list .pr .meta .chg.down { color: var(--down); }
