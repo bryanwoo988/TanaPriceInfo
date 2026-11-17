@@ -19,6 +19,7 @@ let LANG = SAVED_LANG || DEFAULT_LANG;
 const STR = {
   ms: {
     "lang.aria": "Bahasa / 语言 / Language",
+    "app.name": "Harga Harian",
     "info.aria": "Info: versi, rekod kemas kini, sejarah kutipan",
     "loading": "Memuatkan…",
     "updated": "Laman dikemas kini {t}",
@@ -131,6 +132,7 @@ const STR = {
 
   zh: {
     "lang.aria": "语言 / Bahasa / Language",
+    "app.name": "价格情报",
     "info.aria": "资讯：版本、更新记录、收集记录",
     "loading": "加载中…",
     "updated": "页面更新于 {t}",
@@ -210,11 +212,11 @@ const STR = {
     "kpdn.note": "价格为各店家报价的中位数。",
 
     "share.title": "分享应用",
-    "share.intro": "用手机相机扫描二维码即可打开 Harga Harian。点击二维码可放大。",
+    "share.intro": "用手机相机扫描二维码即可打开 价格情报。点击二维码可放大。",
     "qr.enlarge": "放大二维码", "qr.alt": "二维码：{u}", "qr.big": "大二维码",
     "copy.link": "复制链接",
     "install.help": "如何添加到主屏幕",
-    "share.app": "Harga Harian：MPOB 油棕鲜果串价格、FAMA 市场价格、KPDN 零售价格。免费，可添加到手机主屏幕。",
+    "share.app": "价格情报：MPOB 油棕鲜果串价格、FAMA 市场价格、KPDN 零售价格。免费，可添加到手机主屏幕。",
     "link.copied": "链接已复制。", "link.press": "长按链接即可复制。",
 
     "app": "应用", "ver": "版本", "released": "发布时间", "buildid": "构建", "data.updated": "数据更新于",
@@ -225,13 +227,13 @@ const STR = {
     "hist.none": "暂无记录。", "info.fail": "加载失败，请稍后再试。",
 
     "ig.title": "添加到主屏幕", "ig.sub": "免费 · 无广告 · 无需注册", "ig.later": "稍后",
-    "ig.inapp": "此应用内的浏览器无法安装 Harga Harian。请先用一般浏览器打开：",
+    "ig.inapp": "此应用内的浏览器无法安装 价格情报。请先用一般浏览器打开：",
     "ig.inapp1": "点击上方的选单 {MENU} 或 <b>⋯</b>。",
     "ig.inapp2": "选择<b>在 {B} 中打开</b>（或 <i>Open in browser</i>）。",
     "ig.inapp3": "然后按照弹出的安装说明操作。",
-    "ig.onetap": "把 Harga Harian 安装到主屏幕，像一般应用一样直接打开，离线也能用。",
+    "ig.onetap": "把 价格情报 安装到主屏幕，像一般应用一样直接打开，离线也能用。",
     "ig.install": "立即安装",
-    "ig.ios": "把 Harga Harian 添加到主屏幕，像一般应用一样直接打开，离线也能用。",
+    "ig.ios": "把 价格情报 添加到主屏幕，像一般应用一样直接打开，离线也能用。",
     "ig.ios1": "在 <b>Safari</b> 中，点击分享按钮 {SHARE}（在下方，或在 <b>⋯</b> 选单里）。",
     "ig.ios2": "向下滑动，选择<b>添加到主屏幕</b> {ADD} <span class=\"muted\">(Add to Home Screen)</span>。",
     "ig.ios3": "点击右上角的<b>添加</b>。",
@@ -243,6 +245,7 @@ const STR = {
 
   en: {
     "lang.aria": "Language / Bahasa / 语言",
+    "app.name": "Price Info",
     "info.aria": "Info: version, update history, collection history",
     "loading": "Loading…",
     "updated": "Page updated {t}",
@@ -322,11 +325,11 @@ const STR = {
     "kpdn.note": "Median price across the reporting shops.",
 
     "share.title": "Share the app",
-    "share.intro": "Scan the QR code with a phone camera to open Harga Harian. Tap the code to enlarge it.",
+    "share.intro": "Scan the QR code with a phone camera to open Price Info. Tap the code to enlarge it.",
     "qr.enlarge": "Enlarge QR code", "qr.alt": "QR code to {u}", "qr.big": "Large QR code",
     "copy.link": "Copy link",
     "install.help": "How to add to the home screen",
-    "share.app": "Harga Harian: MPOB oil palm FFB prices, FAMA market prices and KPDN retail prices. Free, and can be added to your phone's home screen.",
+    "share.app": "Price Info: MPOB oil palm FFB prices, FAMA market prices and KPDN retail prices. Free, and can be added to your phone's home screen.",
     "link.copied": "Link copied.", "link.press": "Press and hold the link to copy it.",
 
     "app": "App", "ver": "Version", "released": "Released", "buildid": "Build", "data.updated": "Data updated",
@@ -337,13 +340,13 @@ const STR = {
     "hist.none": "No records yet.", "info.fail": "Could not load. Please try again later.",
 
     "ig.title": "Add to home screen", "ig.sub": "Free · no ads · no sign-up", "ig.later": "Later",
-    "ig.inapp": "This in-app browser cannot install Harga Harian. Open it in a normal browser first:",
+    "ig.inapp": "This in-app browser cannot install Price Info. Open it in a normal browser first:",
     "ig.inapp1": "Tap the menu {MENU} or <b>⋯</b> at the top.",
     "ig.inapp2": "Choose <b>Open in {B}</b> (or <i>Open in browser</i>).",
     "ig.inapp3": "Then follow the install guide that appears.",
-    "ig.onetap": "Install Harga Harian on your home screen to open it like a normal app, even without internet.",
+    "ig.onetap": "Install Price Info on your home screen to open it like a normal app, even without internet.",
     "ig.install": "Install now",
-    "ig.ios": "Add Harga Harian to your home screen to open it like a normal app, even without internet.",
+    "ig.ios": "Add Price Info to your home screen to open it like a normal app, even without internet.",
     "ig.ios1": "In <b>Safari</b>, tap the Share button {SHARE} (at the bottom, or in the <b>⋯</b> menu).",
     "ig.ios2": "Scroll down and choose <b>Add to Home Screen</b> {ADD}.",
     "ig.ios3": "Tap <b>Add</b> at the top right.",
@@ -364,6 +367,7 @@ function t(key, vars = {}) {
 // Static page text: data-i18n="key" sets the text; data-i18n-attr="placeholder:key;aria-label:key".
 function applyStaticText() {
   document.documentElement.lang = { ms: "ms", zh: "zh-Hans", en: "en" }[LANG];
+  document.title = t("app.name");
   for (const n of document.querySelectorAll("[data-i18n]")) n.textContent = t(n.dataset.i18n);
   for (const n of document.querySelectorAll("[data-i18n-attr]")) {
     for (const pair of n.dataset.i18nAttr.split(";")) {
