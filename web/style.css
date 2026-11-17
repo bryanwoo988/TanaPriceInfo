@@ -326,3 +326,13 @@ em.few {
 .trend .chart text { fill: var(--muted); font-size: 10px; }
 .trend p { margin: 4px 0 0; }
 #fama-detail .btn.wide { margin-top: 16px; }
+
+/* ---------- language toggle ---------- */
+.top-btns { display: flex; align-items: center; gap: 6px; flex: none; }
+.lang-btn {
+  font: inherit; font-size: 14px; font-weight: 700; color: inherit; cursor: pointer;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px; padding: 6px 12px; min-height: 36px;
+}
+.lang-btn:active { background: rgba(255,255,255,.28); }
+@media (prefers-color-scheme: dark) { .lang-btn { background: var(--field); border-color: var(--line); } }

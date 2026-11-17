@@ -18,28 +18,31 @@
   <header class="top">
     <div class="top-row">
       <h1>Harga Harian</h1>
-      <button type="button" id="info-btn" class="icon-btn" aria-label="Info: versi, rekod kemas kini, sejarah kutipan" aria-pressed="false">
+      <div class="top-btns">
+      <button type="button" id="lang-btn" class="lang-btn" data-i18n="lang.switch" data-i18n-attr="aria-label:lang.aria">中文</button>
+      <button type="button" id="info-btn" class="icon-btn" data-i18n-attr="aria-label:info.aria" aria-label="Info: versi, rekod kemas kini, sejarah kutipan" aria-pressed="false">
         <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="7.3" r="1.5" fill="currentColor"/></svg>
       </button>
+      </div>
     </div>
-    <p id="updated" class="muted">Memuatkan…</p>
+    <p id="updated" class="muted" data-i18n="loading">Memuatkan…</p>
     <p id="health" class="health" hidden></p>
   </header>
 
-  <button id="update" class="banner update" type="button" hidden>Versi baharu tersedia — tekan untuk kemas kini</button>
-  <div id="offline" class="banner" hidden>Luar talian — memaparkan data terakhir yang disimpan.</div>
+  <button id="update" class="banner update" type="button" data-i18n="update.banner" hidden>Versi baharu tersedia — tekan untuk kemas kini</button>
+  <div id="offline" class="banner" data-i18n="offline" hidden>Luar talian — memaparkan data terakhir yang disimpan.</div>
 
   <main>
     <section id="tab-mpob" class="tab" aria-labelledby="t-mpob">
       <article class="card" id="mpob">
         <div class="card-head">
-          <h2>Harga BTS Sawit (MPOB)</h2>
+          <h2 data-i18n="mpob.title">Harga BTS Sawit (MPOB)</h2>
           <span class="muted small">RM / 1% OER</span>
         </div>
         <div class="src" id="src-mpob"></div>
         <div class="row-between">
           <p class="muted small" id="mpob-date"></p>
-          <button type="button" class="link-btn" id="mpob-share">Kongsi</button>
+          <button type="button" class="link-btn" id="mpob-share" data-i18n="share">Kongsi</button>
         </div>
         <ul class="regions" id="mpob-list"></ul>
         <div class="chart-wrap">
@@ -50,29 +53,29 @@
       </article>
 
       <article class="card" id="calc">
-        <h2>Kira harga BTS anda</h2>
-        <p class="small muted">Harga MPOB adalah untuk setiap 1% kadar perahan minyak (OER). Masukkan OER dan berat buah anda.</p>
+        <h2 data-i18n="calc.title">Kira harga BTS anda</h2>
+        <p class="small muted" data-i18n="calc.intro">Harga MPOB adalah untuk setiap 1% kadar perahan minyak (OER). Masukkan OER dan berat buah anda.</p>
         <div class="calc-grid">
-          <label class="fld"><span class="small muted">Wilayah</span><select id="calc-region"></select></label>
-          <label class="fld"><span class="small muted">OER (%)</span><input id="calc-oer" type="number" inputmode="decimal" min="10" max="30" step="0.1"></label>
-          <label class="fld"><span class="small muted">Berat (tan)</span><input id="calc-tons" type="number" inputmode="decimal" min="0" step="0.01"></label>
+          <label class="fld"><span class="small muted" data-i18n="calc.region">Wilayah</span><select id="calc-region"></select></label>
+          <label class="fld"><span class="small muted" data-i18n="calc.oer">OER (%)</span><input id="calc-oer" type="number" inputmode="decimal" min="10" max="30" step="0.1"></label>
+          <label class="fld"><span class="small muted" data-i18n="calc.tons">Berat (tan)</span><input id="calc-tons" type="number" inputmode="decimal" min="0" step="0.01"></label>
         </div>
         <div class="calc-out" id="calc-out" aria-live="polite"></div>
-        <p class="small muted">Anggaran berdasarkan harga rujukan MPOB di pintu kilang. Harga sebenar bergantung pada kilang, gred buah, potongan dan kos pengangkutan.</p>
+        <p class="small muted" data-i18n="calc.note">Anggaran berdasarkan harga rujukan MPOB di pintu kilang. Harga sebenar bergantung pada kilang, gred buah, potongan dan kos pengangkutan.</p>
       </article>
     </section>
 
     <section id="tab-fama" class="tab" aria-labelledby="t-fama" hidden>
       <article class="card" id="fama">
-        <h2 class="sr-only">Harga Pasaran (FAMA)</h2>
+        <h2 class="sr-only" data-i18n="fama.title">Harga Pasaran (FAMA)</h2>
         <div class="src" id="src-fama"></div>
-        <div class="seg" id="fama-levels" role="group" aria-label="Peringkat harga"></div>
+        <div class="seg" id="fama-levels" role="group" aria-label="Peringkat harga" data-i18n-attr="aria-label:fama.levels"></div>
         <div class="row2">
-          <select id="fama-state" aria-label="Negeri"></select>
-          <select id="fama-district" aria-label="Daerah"></select>
+          <select id="fama-state" aria-label="Negeri" data-i18n-attr="aria-label:state"></select>
+          <select id="fama-district" aria-label="Daerah" data-i18n-attr="aria-label:district"></select>
         </div>
-        <div class="chips" id="fama-cats" role="group" aria-label="Kategori"></div>
-        <input type="search" id="fama-search" placeholder="Cari barang… (cth. ayam, cili)" autocomplete="off">
+        <div class="chips" id="fama-cats" role="group" aria-label="Kategori" data-i18n-attr="aria-label:category"></div>
+        <input type="search" id="fama-search" placeholder="Cari barang… (cth. ayam, cili)" data-i18n-attr="placeholder:fama.search;aria-label:fama.search" autocomplete="off">
         <ul class="list" id="fama-list"></ul>
         <p class="muted small center" id="fama-count"></p>
         <p class="small muted" id="fama-window"></p>
@@ -82,44 +85,44 @@
     <section id="tab-kpdn" class="tab" aria-labelledby="t-kpdn" hidden>
       <article class="card">
         <div class="card-head">
-          <h2>Harga Runcit (KPDN PriceCatcher)</h2>
+          <h2 data-i18n="kpdn.title">Harga Runcit (KPDN PriceCatcher)</h2>
         </div>
         <div class="src" id="src-pricecatcher"></div>
         <div class="row">
-          <label class="small muted" for="pc-state">Negeri</label>
+          <label class="small muted" for="pc-state" data-i18n="state">Negeri</label>
           <select id="pc-state"></select>
         </div>
-        <input type="search" id="pc-search" placeholder="Cari sayur / buah…" autocomplete="off">
+        <input type="search" id="pc-search" placeholder="Cari sayur / buah…" data-i18n-attr="placeholder:kpdn.search;aria-label:kpdn.search" autocomplete="off">
         <ul class="list" id="pc-list"></ul>
-        <p class="muted small center">Harga tengah (median) daripada premis yang dilaporkan.</p>
+        <p class="muted small center" data-i18n="kpdn.note">Harga tengah (median) daripada premis yang dilaporkan.</p>
       </article>
     </section>
     <section id="tab-info" class="tab" aria-label="Info" hidden>
       <article class="card share">
-        <h2>Kongsi aplikasi</h2>
-        <p class="small muted">Imbas kod QR dengan kamera telefon untuk buka Harga Harian. Tekan kod untuk besarkan.</p>
-        <button type="button" class="qr" id="qr-btn" aria-label="Besarkan kod QR">
-          <img src="icons/qr.svg" alt="Kod QR ke https://bryanwoo988.github.io/TanaPriceInfo/" width="200" height="200">
+        <h2 data-i18n="share.title">Kongsi aplikasi</h2>
+        <p class="small muted" data-i18n="share.intro">Imbas kod QR dengan kamera telefon untuk buka Harga Harian. Tekan kod untuk besarkan.</p>
+        <button type="button" class="qr" id="qr-btn" aria-label="Besarkan kod QR" data-i18n-attr="aria-label:qr.enlarge">
+          <img src="icons/qr.svg" alt="Kod QR ke https://bryanwoo988.github.io/TanaPriceInfo/" data-i18n-attr="alt:qr.alt" width="200" height="200">
         </button>
         <p class="share-url" id="share-url">bryanwoo988.github.io/TanaPriceInfo</p>
         <div class="share-actions">
-          <button type="button" class="btn primary" id="share-btn">Kongsi</button>
-          <button type="button" class="btn" id="copy-btn">Salin pautan</button>
+          <button type="button" class="btn primary" id="share-btn" data-i18n="share">Kongsi</button>
+          <button type="button" class="btn" id="copy-btn" data-i18n="copy.link">Salin pautan</button>
         </div>
         <p class="small muted center" id="share-msg" role="status"></p>
-        <button type="button" class="btn wide" id="install-help" hidden>Cara pasang di skrin utama</button>
+        <button type="button" class="btn wide" id="install-help" data-i18n="install.help" hidden>Cara pasang di skrin utama</button>
       </article>
       <article class="card">
-        <h2>Aplikasi</h2>
+        <h2 data-i18n="app">Aplikasi</h2>
         <dl class="kv" id="app-info"></dl>
       </article>
       <article class="card">
-        <h2>Rekod kemas kini</h2>
-        <ol class="changelog" id="changelog"><li class="muted small">Memuatkan…</li></ol>
+        <h2 data-i18n="changelog">Rekod kemas kini</h2>
+        <ol class="changelog" id="changelog"><li class="muted small" data-i18n="loading">Memuatkan…</li></ol>
       </article>
       <article class="card">
-        <h2>Sejarah kutipan data</h2>
-        <p class="small muted">Setiap kutipan (automatik setiap hari 6:13 petang, atau manual) dalam 90 hari terakhir. Semua masa ialah waktu Malaysia.</p>
+        <h2 data-i18n="history">Sejarah kutipan data</h2>
+        <p class="small muted" data-i18n="history.intro">Setiap kutipan (automatik setiap hari 6:13 petang, atau manual) dalam 90 hari terakhir. Semua masa ialah waktu Malaysia.</p>
         <div class="table-wrap"><table class="hist" id="hist"></table></div>
       </article>
     </section>
@@ -130,11 +133,11 @@
   <div id="toast" class="toast" role="status" hidden></div>
   <dialog id="fama-detail" class="sheet" aria-labelledby="fd-title"></dialog>
   <dialog id="install-guide" class="sheet" aria-labelledby="ig-title"></dialog>
-  <dialog id="qr-big" class="qr-big" aria-label="Kod QR besar">
-    <img src="icons/qr.svg" alt="Kod QR ke https://bryanwoo988.github.io/TanaPriceInfo/">
+  <dialog id="qr-big" class="qr-big" aria-label="Kod QR besar" data-i18n-attr="aria-label:qr.big">
+    <img src="icons/qr.svg" alt="Kod QR ke https://bryanwoo988.github.io/TanaPriceInfo/" data-i18n-attr="alt:qr.alt">
     <p>Harga Harian</p>
     <p class="small">bryanwoo988.github.io/TanaPriceInfo</p>
-    <button type="button" class="btn" id="qr-close">Tutup</button>
+    <button type="button" class="btn" id="qr-close" data-i18n="close">Tutup</button>
   </dialog>
 
   <nav class="tabs" role="tablist">
@@ -143,6 +146,7 @@
     <button role="tab" id="t-kpdn" aria-selected="false" data-tab="kpdn">KPDN<i class="dot" hidden></i></button>
   </nav>
 
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

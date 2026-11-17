@@ -32,6 +32,9 @@
 - 界面用马来文。底部三个标签：**MPOB**（油棕 FFB 价：6 区、涨跌、走势图）、**FAMA**（Ladang/Borong/Runcit、州、县、分类、搜索；点产品看三个层级和各州/各县比较）、**KPDN**（PriceCatcher 按州零售价）。右上角 ⓘ 是 Info（版本、更新记录、抓取历史）。某个来源过期或抓取失败时，它的标签旁有红点。
 - 手机加到主屏幕：iPhone 用 Safari → 分享 → 「添加到主屏幕」；Android 用 Chrome → 菜单 → 「安装应用」。
 - 离线时显示上次打开时的价格。
+- **语言**：右上角按钮切换中文 / 马来文（简体中文）。第一次打开时按手机语言，之后记住选择。商品名、州名、县名不翻译。
+  所有界面文字在 `web/i18n.js`（`ms` 和 `zh` 两份）；HTML 里用 `data-i18n="键"`，JS 里用 `t("键", {变量})`。新增文字时两种语言都要加，缺中文时会显示马来文。
+  更新记录的中文写在 `web/changelog.json` 的 `title_zh` / `notes_zh`。
 - **MPOB 计算器**：MPOB 页下方，输入地区、出油率（OER %）和吨数，得出每吨参考价和总额（MPOB 价格 × OER）。
 - **FAMA**：列表显示和上星期比的 ▲▼ %；少于 3 笔记录标"rekod sedikit"；点产品看 30 天走势（空心点 = 当天少于 3 笔）；☆ 收藏（存在手机里，排在最前，可用"★ Kegemaran"筛选）；"Kongsi harga"分享价格文字。MPOB 页也可分享当天 6 区价格。
 - **安装教学**：第一次在手机浏览器打开时，从底部弹出"加到主屏幕"教学，按手机类型显示：iPhone Safari 步骤、Android Chrome 一键"Pasang sekarang"（不支持时显示选单步骤）、在 Facebook/Instagram 等 app 内打开时先教用 Safari/Chrome 打开。关掉后不再自动出现；已安装（从主屏幕打开）不会出现；电脑不自动出现。Info 页的"Cara pasang di skrin utama"可再打开。

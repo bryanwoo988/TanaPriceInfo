@@ -8,7 +8,7 @@ const BUILD = "__BUILD__";
 const SHELL = `shell-${BUILD}`;
 const DATA = "data";
 const SHELL_FILES = [
-  "./", "index.html", "style.css", "app.js", "manifest.webmanifest",
+  "./", "index.html", "style.css", "i18n.js", "app.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/qr.svg",
 ];
 const NET_TIMEOUT_MS = 4000;

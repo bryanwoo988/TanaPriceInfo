@@ -1,9 +1,7 @@
 "use strict";
 
-const REGION_NAMES = {
-  north: "Utara", south: "Selatan", central: "Tengah",
-  east_coast: "Pantai Timur", sabah: "Sabah", sarawak: "Sarawak",
-};
+const REGIONS = ["north", "south", "central", "east_coast", "sabah", "sarawak"];
+const regionName = (k) => t(`reg.${k}`);
 const MONTHS = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
 const CHART_DAYS = 30;
 const LIST_LIMIT = 300;
@@ -24,10 +22,12 @@ function store(key, val) {
   return null;
 }
 
-function fmtDate(iso) {
+// "17 Nov 2026" / "2026年11月17日"; withYear=false: "17 Nov" / "11月17日".
+function fmtDate(iso, withYear = true) {
   if (!iso) return "—";
   const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
-  return `${d} ${MONTHS[m - 1]} ${y}`;
+  if (LANG === "zh") return `${withYear ? `${y}年` : ""}${m}月${d}日`;
+  return withYear ? `${d} ${MONTHS[m - 1]} ${y}` : `${d} ${MONTHS[m - 1]}`;
 }
 
 function el(tag, attrs = {}, ...kids) {
@@ -52,15 +52,15 @@ const DAY = 86400000;
 // "Today" in Malaysia, whatever the phone's time zone is.
 const todayMYT = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
 const ageDays = (iso) => Math.round((Date.parse(todayMYT()) - Date.parse(iso.slice(0, 10))) / DAY);
-const fmtTime = (iso) => (iso ? `${fmtDate(iso).replace(/ \d{4}$/, "")}, ${iso.slice(11, 16)}` : "—");
+const fmtTime = (iso) => (iso ? `${fmtDate(iso, false)}${LANG === "zh" ? " " : ", "}${iso.slice(11, 16)}` : "—");
 const SHORT = { mpob: "MPOB", fama: "FAMA", pricecatcher: "KPDN" };
 
 function freshness(src) {
-  if (!src || !src.data_date) return { level: "bad", label: "Tiada data" };
+  if (!src || !src.data_date) return { level: "bad", label: t("fresh.none") };
   const age = ageDays(src.data_date);
-  if (src.ok === false) return { level: "bad", label: "Gagal dikutip", age };
-  if (age > src.max_age_days) return { level: "warn", label: `Lewat ${age} hari`, age };
-  return { level: "ok", label: "Terkini", age };
+  if (src.ok === false) return { level: "bad", label: t("fresh.failed"), age };
+  if (age > src.max_age_days) return { level: "warn", label: t("fresh.late", { n: age }), age };
+  return { level: "ok", label: t("fresh.ok"), age };
 }
 
 function renderSource(key, src) {
@@ -72,15 +72,15 @@ function renderSource(key, src) {
   const kids = [
     el("div", { class: "src-top" },
       el("span", { class: `pill ${f.level}` }, f.label),
-      src?.url ? el("a", { href: src.url, target: "_blank", rel: "noopener" }, `Semak di ${SHORT[key] || src.name} ↗`) : null),
+      src?.url ? el("a", { href: src.url, target: "_blank", rel: "noopener" }, t("src.check", { s: SHORT[key] || src.name })) : null),
     el("p", { class: "small muted" },
-      `Harga ${fmtDate(src?.data_date).replace(/ \d{4}$/, "")}` +
-      (f.age != null ? ` (${f.age === 0 ? "hari ini" : `${f.age} hari lalu`})` : "") +
-      (src?.last_success ? ` · dikutip ${when(src.last_success)}` : "")),
+      t("src.price", { d: fmtDate(src?.data_date, false) }) +
+      (f.age != null ? (f.age === 0 ? t("src.today") : t("src.ago", { n: f.age })) : "") +
+      (src?.last_success ? t("src.collected", { t: when(src.last_success) }) : "")),
   ];
   if (src?.ok === false) {
     kids.push(el("p", { class: "small warn-text" },
-      `Kutipan terakhir gagal (${fmtTime(src.last_attempt)}). Harga di bawah mungkin lama.`));
+      t("src.failed", { t: fmtTime(src.last_attempt) })));
   }
   if (src?.date_kind === "collected") {
     kids.push(el("p", { class: "small muted" }, `${src.name} tidak menyatakan tarikh harga; ini tarikh data dikutip.`));
@@ -112,12 +112,13 @@ function renderMpob(latest) {
   const list = $("mpob-list");
   list.replaceChildren();
   if (!latest || !latest.date) {
-    $("mpob-date").textContent = "Tiada data.";
+    $("mpob-date").textContent = t("no.data");
     return;
   }
   $("mpob-date").textContent =
-    latest.previous_date ? `Perubahan berbanding ${fmtDate(latest.previous_date)}` : "";
-  for (const [key, name] of Object.entries(REGION_NAMES)) {
+    latest.previous_date ? t("mpob.change", { d: fmtDate(latest.previous_date) }) : "";
+  for (const key of REGIONS) {
+    const name = regionName(key);
     const c = latest.change?.[key];
     const chg = c == null || c === 0 ? null
       : el("span", { class: `chg ${c > 0 ? "up" : "down"}` }, `${c > 0 ? "▲" : "▼"}${Math.abs(c).toFixed(2)}`);
@@ -136,7 +137,7 @@ function drawChart() {
     .filter((d) => d.status === "ok" && d.prices[selRegion] != null)
     .slice(-CHART_DAYS)
     .map((d) => ({ date: d.date, v: d.prices[selRegion] }));
-  $("chart-title").textContent = `Trend ${REGION_NAMES[selRegion]} (${pts.length} hari dagangan terakhir)`;
+  $("chart-title").textContent = t("mpob.trend", { r: regionName(selRegion), n: pts.length });
   if (pts.length < 2) {
     $("chart-from").textContent = ""; $("chart-to").textContent = "";
     return;
@@ -147,15 +148,15 @@ function drawChart() {
   const x = (i) => P + (i * (W - 2 * P)) / (pts.length - 1);
   const y = (v) => H - P - ((v - lo) * (H - 2 * P)) / (hi - lo);
   const NS = "http://www.w3.org/2000/svg";
-  const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const mk = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
   for (const v of [lo, hi]) {
     svg.append(mk("line", { class: "gd", x1: P, x2: W - P, y1: y(v), y2: y(v) }));
-    const t = mk("text", { x: W - P, y: y(v) - 3, "text-anchor": "end" }); t.textContent = v.toFixed(2); svg.append(t);
+    const lbl = mk("text", { x: W - P, y: y(v) - 3, "text-anchor": "end" }); lbl.textContent = v.toFixed(2); svg.append(lbl);
   }
   svg.append(mk("polyline", { class: "ln", points: pts.map((p, i) => `${x(i)},${y(p.v)}`).join(" ") }));
   const last = pts[pts.length - 1];
   svg.append(mk("circle", { class: "dot", cx: x(pts.length - 1), cy: y(last.v), r: 3 }));
-  svg.setAttribute("aria-label", `Trend harga ${REGION_NAMES[selRegion]}, terkini RM ${last.v.toFixed(2)}`);
+  svg.setAttribute("aria-label", t("mpob.trend.aria", { r: regionName(selRegion), v: last.v.toFixed(2) }));
   $("chart-from").textContent = fmtDate(pts[0].date);
   $("chart-to").textContent = fmtDate(last.date);
 }
@@ -165,16 +166,16 @@ let mpobLatest = null;
 
 function mpobShareText() {
   const m = mpobLatest;
-  const lines = Object.entries(REGION_NAMES).map(([k, n]) => `${n}: RM ${rm(m.prices?.[k])}`);
-  return `Harga BTS sawit MPOB (RM / 1% OER), ${fmtDate(m.date)}\n${lines.join("\n")}\n\nHarga Harian: ${APP_URL}`;
+  const lines = REGIONS.map((k) => `${regionName(k)}: RM ${rm(m.prices?.[k])}`);
+  return `${t("mpob.share", { d: fmtDate(m.date) })}\n${lines.join("\n")}\n\nHarga Harian: ${APP_URL}`;
 }
 
 function renderCalc() {
   const m = mpobLatest;
-  if (!m?.prices) { $("calc-out").textContent = "Tiada harga MPOB."; return; }
+  if (!m?.prices) { $("calc-out").textContent = t("calc.noprice"); return; }
   const sel = $("calc-region");
   if (!sel.options.length) {
-    sel.replaceChildren(...Object.entries(REGION_NAMES).map(([k, n]) => el("option", { value: k }, n)));
+    sel.replaceChildren(...REGIONS.map((k) => el("option", { value: k }, regionName(k))));
     sel.value = store("calc-region") || selRegion;
     $("calc-oer").value = store("calc-oer") || "20";
     $("calc-tons").value = store("calc-tons") || "1";
@@ -182,17 +183,17 @@ function renderCalc() {
   const region = sel.value, per1 = m.prices[region];
   const oer = parseFloat($("calc-oer").value), tons = parseFloat($("calc-tons").value);
   const out = $("calc-out");
-  if (per1 == null) { out.replaceChildren(el("p", { class: "warn-text" }, "Tiada harga untuk wilayah ini.")); return; }
+  if (per1 == null) { out.replaceChildren(el("p", { class: "warn-text" }, t("calc.noregion"))); return; }
   if (!(oer >= 10 && oer <= 30)) {
-    out.replaceChildren(el("p", { class: "warn-text" }, "Masukkan OER antara 10% dan 30% (biasanya 18–23%)."));
+    out.replaceChildren(el("p", { class: "warn-text" }, t("calc.badoer")));
     return;
   }
   const perTon = per1 * oer; // MPOB quotes RM per tonne for each 1% OER
   const kids = [
-    el("div", { class: "calc-main" }, el("b", {}, fmtRM(perTon)), el("span", {}, " / tan")),
-    el("p", { class: "small muted" }, `${fmtRM(per1)} × ${oer}% OER · ${REGION_NAMES[region]}, harga ${fmtDate(m.date)}`),
+    el("div", { class: "calc-main" }, el("b", {}, fmtRM(perTon)), el("span", {}, t("calc.perton"))),
+    el("p", { class: "small muted" }, t("calc.formula", { p: fmtRM(per1), o: oer, r: regionName(region), d: fmtDate(m.date) })),
   ];
-  if (tons > 0) kids.push(el("p", { class: "calc-total" }, `Jumlah ${tons} tan: `, el("b", {}, fmtRM(perTon * tons))));
+  if (tons > 0) kids.push(el("p", { class: "calc-total" }, t("calc.total", { n: tons }), el("b", {}, fmtRM(perTon * tons))));
   out.replaceChildren(...kids);
 }
 for (const id of ["calc-region", "calc-oer", "calc-tons"]) {
@@ -204,9 +205,9 @@ $("mpob-share").addEventListener("click", () => { if (mpobLatest?.date) shareTex
 const fmtRM = (v) => `RM ${Number(v).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 let toastTimer = 0;
 function toast(text) {
-  const t = $("toast");
-  t.textContent = text; t.hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3000);
+  const box = $("toast");
+  box.textContent = text; box.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { box.hidden = true; }, 3000);
 }
 // Native share sheet when available; otherwise copy the text.
 async function shareText(text) {
@@ -214,8 +215,8 @@ async function shareText(text) {
     try { await navigator.share({ text }); return; }
     catch (e) { if (e?.name === "AbortError") return; }
   }
-  try { await navigator.clipboard.writeText(text); toast("Disalin. Tampal dalam WhatsApp atau mesej."); }
-  catch { toast("Tidak dapat berkongsi di pelayar ini."); }
+  try { await navigator.clipboard.writeText(text); toast(t("toast.copied")); }
+  catch { toast(t("toast.noshare")); }
 }
 
 /** Line chart into an <svg viewBox="0 0 320 H">; values may contain nulls (no data that day).
@@ -230,11 +231,11 @@ function lineChart(svg, values, H = 120, weak = []) {
   const x = (i) => P + (i * (W - 2 * P)) / Math.max(n - 1, 1);
   const y = (v) => H - P - ((v - lo) * (H - 2 * P)) / (hi - lo);
   const NS = "http://www.w3.org/2000/svg";
-  const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const mk = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
   for (const v of [lo, hi]) {
     svg.append(mk("line", { class: "gd", x1: P, x2: W - P, y1: y(v), y2: y(v) }));
     // Labels on the left: the newest point (right end) stays visible.
-    const t = mk("text", { x: P, y: y(v) - 3, "text-anchor": "start" }); t.textContent = v.toFixed(2); svg.append(t);
+    const lbl = mk("text", { x: P, y: y(v) - 3, "text-anchor": "start" }); lbl.textContent = v.toFixed(2); svg.append(lbl);
   }
   svg.append(mk("polyline", { class: "ln", points: pts.map(([i, v]) => `${x(i)},${y(v)}`).join(" ") }));
   for (const [i, v] of pts) {
@@ -247,7 +248,8 @@ function lineChart(svg, values, H = 120, weak = []) {
 
 /* ---------- FAMA ---------- */
 const FAMA_LEVELS = ["Ladang", "Borong", "Runcit"];
-const FAMA_CATS = [["", "Semua"], ["fav", "★ Kegemaran"], ["Sayur-Sayuran", "Sayur"], ["Buah-Buahan", "Buah"], ["Ternakan", "Ternakan"]];
+const FAMA_CATS = [["", "cat.all"], ["fav", "cat.fav"], ["Sayur-Sayuran", "cat.veg"], ["Buah-Buahan", "cat.fruit"], ["Ternakan", "cat.livestock"]];
+const lvlName = (l) => t(`lvl.${l}`); // data keeps the Malay level names
 let fama = null;       // api/fama.json: national + state
 let famaDist = null;   // api/fama_daerah.json: loaded only when a district is needed
 let famaDistReq = null;
@@ -261,8 +263,8 @@ const fs = {
 // "NEGERI SEMBILAN" -> "Negeri Sembilan", "W.P. KUALA LUMPUR" -> "W.P. Kuala Lumpur"
 const tc = (s) => (s ? s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : s);
 const itemKey = (e) => `${e.item}|${e.grade}|${e.unit}`;
-const shortDate = (iso) => fmtDate(iso).replace(/ \d{4}$/, "");
-const locLabel = (st, di) => (di ? `${tc(di)}, ${tc(st)}` : st ? tc(st) : "Seluruh Malaysia");
+const shortDate = (iso) => fmtDate(iso, false);
+const locLabel = (st, di) => (di ? `${tc(di)}, ${tc(st)}` : st ? tc(st) : t("all.malaysia"));
 
 // Favourites: item+grade+unit, for every level and place. Kept on this phone only.
 let favs = new Set();
@@ -282,11 +284,11 @@ function ensureTrend() {
 }
 
 const FEW = () => fama?.window?.few_records_below || 3;
-const fewTag = (x) => (x && x.records < FEW() ? el("em", { class: "few", title: "Sedikit rekod: purata kurang tepat" }, "rekod sedikit") : null);
+const fewTag = (x) => (x && x.records < FEW() ? el("em", { class: "few", title: t("few.title") }, t("few")) : null);
 function changeTag(x) {
   const c = x?.change_pct;
   if (c == null || Math.abs(c) < 0.5) return null;
-  return el("span", { class: `chg ${c > 0 ? "up" : "down"}`, title: "Berbanding minggu sebelumnya" },
+  return el("span", { class: `chg ${c > 0 ? "up" : "down"}`, title: t("change.title") },
     `${c > 0 ? "▲" : "▼"}${Math.abs(c).toFixed(1)}%`);
 }
 
@@ -308,43 +310,43 @@ function renderFamaControls() {
     el("button", {
       type: "button", "aria-pressed": String(l === fs.level),
       onclick: () => { fs.level = l; store("fama-level", l); renderFamaControls(); renderFama(); },
-    }, l)));
+    }, lvlName(l))));
 
   const states = Object.keys(fama?.states || {});
   if (fs.state && !states.includes(fs.state)) fs.state = fs.district = "";
   const st = $("fama-state");
-  st.replaceChildren(el("option", { value: "" }, "Semua negeri"),
+  st.replaceChildren(el("option", { value: "" }, t("all.states")),
     ...states.map((s) => el("option", { value: s }, tc(s))));
   st.value = fs.state;
 
   const districts = fs.state ? fama.states[fs.state] || [] : [];
   if (fs.district && !districts.includes(fs.district)) fs.district = "";
   const di = $("fama-district");
-  di.replaceChildren(el("option", { value: "" }, "Semua daerah"),
+  di.replaceChildren(el("option", { value: "" }, t("all.districts")),
     ...districts.map((d) => el("option", { value: d }, tc(d))));
   di.value = fs.district;
   di.disabled = !fs.state;
 
-  $("fama-cats").replaceChildren(...FAMA_CATS.map(([v, label]) =>
+  $("fama-cats").replaceChildren(...FAMA_CATS.map(([v, key]) =>
     el("button", {
       type: "button", "aria-pressed": String(v === fs.cat),
       onclick: () => { fs.cat = v; renderFamaControls(); renderFama(); },
-    }, label)));
+    }, t(key))));
 }
 
 async function renderFama() {
   if (!fama) return;
   const list = $("fama-list");
   if (fs.district && !famaDist) {
-    list.replaceChildren(el("li", {}, el("span", { class: "muted" }, "Memuatkan harga daerah…")));
+    list.replaceChildren(el("li", {}, el("span", { class: "muted" }, t("dist.loading"))));
     try { await ensureDist(); } catch {
-      list.replaceChildren(el("li", {}, el("span", { class: "muted" }, "Gagal memuatkan harga daerah.")));
+      list.replaceChildren(el("li", {}, el("span", { class: "muted" }, t("dist.fail"))));
       return;
     }
   }
   const w = fama.window;
   $("fama-window").textContent = w
-    ? `Harga ialah purata ${w.days} hari (${shortDate(w.from)} – ${fmtDate(w.to)}), ditimbang mengikut bilangan rekod FAMA. ▲▼ = berbanding minggu sebelumnya. "Rekod sedikit" = kurang ${FEW()} rekod, purata kurang tepat. Tekan barang untuk banding peringkat, lokasi dan trend.`
+    ? t("fama.window", { n: w.days, from: shortDate(w.from), to: fmtDate(w.to), few: FEW() })
     : "";
 
   const m = matcher($("fama-search").value);
@@ -356,24 +358,24 @@ async function renderFama() {
   list.replaceChildren(...rows.slice(0, LIST_LIMIT).map((e) =>
     el("li", {}, el("button", { type: "button", class: "rowbtn", onclick: () => openFamaDetail(e) },
       el("div", { class: "it" },
-        el("b", {}, favs.has(itemKey(e)) ? el("span", { class: "star on", "aria-label": "Kegemaran" }, "★ ") : null, e.item),
+        el("b", {}, favs.has(itemKey(e)) ? el("span", { class: "star on", "aria-label": t("fav") }, "★ ") : null, e.item),
         el("span", {}, `${e.grade} · ${e.unit}`)),
       el("div", { class: "pr" }, el("b", {}, `RM ${rm(e.price)}`), changeTag(e),
-        el("span", {}, `${e.records} rekod` + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : "")),
+        el("span", {}, t("records", { n: e.records }) + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : "")),
         fewTag(e))))));
   if (!rows.length) {
     list.append(el("li", {}, el("span", { class: "muted" },
-      all.length ? (fs.cat === "fav" && !favs.size ? "Belum ada kegemaran. Buka barang dan tekan ☆ untuk simpan." : "Tiada padanan.") : `Tiada harga ${fs.level} untuk ${locLabel(fs.state, fs.district)} dalam tempoh ini.`)));
+      all.length ? (fs.cat === "fav" && !favs.size ? t("fav.none") : t("no.match")) : t("fama.none", { lvl: lvlName(fs.level), loc: locLabel(fs.state, fs.district) }))));
   }
-  $("fama-count").textContent = `${rows.length} barang · ${fs.level} · ${locLabel(fs.state, fs.district)}`;
+  $("fama-count").textContent = t("fama.count", { n: rows.length, lvl: lvlName(fs.level), loc: locLabel(fs.state, fs.district) });
 }
 
 function famaShareText(e, chain) {
   const w = fama.window;
   const lines = chain.filter(([, x]) => x).map(([l, x]) =>
-    `${l}: RM ${rm(x.price)}${x.records < FEW() ? " (rekod sedikit)" : ""}`);
+    `${lvlName(l)}: RM ${rm(x.price)}${x.records < FEW() ? t("share.few") : ""}`);
   return `${e.item} (${e.grade}, RM/${e.unit})\n${locLabel(fs.state, fs.district)}\n${lines.join("\n")}\n` +
-    (w ? `Purata ${w.days} hari ${shortDate(w.from)} – ${fmtDate(w.to)}, FAMA\n` : "") +
+    (w ? `${t("share.window", { n: w.days, from: shortDate(w.from), to: fmtDate(w.to) })}\n` : "") +
     `\nHarga Harian: ${APP_URL}`;
 }
 
@@ -388,9 +390,9 @@ async function openFamaDetail(e) {
   const chainBox = el("div", { class: "chain" }, ...chain.flatMap(([l, x], i) => [
     i ? el("span", { class: "arrow", "aria-hidden": "true" }, "→") : null,
     el("div", { class: `lvl${l === fs.level ? " cur" : ""}` },
-      el("span", { class: "small muted" }, l),
+      el("span", { class: "small muted" }, lvlName(l)),
       el("b", {}, x ? rm(x.price) : "—"),
-      el("span", { class: "small muted" }, x ? `${x.records} rekod` : "tiada data"),
+      el("span", { class: "small muted" }, x ? t("records", { n: x.records }) : t("nodata.short")),
       changeTag(x), fewTag(x)),
   ]));
 
@@ -404,28 +406,28 @@ async function openFamaDetail(e) {
   const peerList = el("ul", { class: "peers" }, ...peers.map((x) => {
     const name = fs.state ? x.district : x.state;
     const cur = fs.state ? x.district === fs.district : false;
-    const tag = peers.length > 1 && x === lo ? "Terendah" : peers.length > 1 && x === hi ? "Tertinggi" : "";
+    const tag = peers.length > 1 && x === lo ? t("lowest") : peers.length > 1 && x === hi ? t("highest") : "";
     return el("li", { class: cur ? "cur" : "" },
       el("span", { class: "pname" }, tc(name), tag ? el("em", { class: x === lo ? "lo" : "hi" }, tag) : null,
-        x.records < FEW() ? el("em", { class: "few", title: "Sedikit rekod" }, "sedikit") : null),
+        x.records < FEW() ? el("em", { class: "few", title: t("few.title") }, t("few.short")) : null),
       el("span", { class: "bar" }, el("i", { style: `width:${Math.round((x.price / max) * 100)}%` })),
       el("b", {}, rm(x.price)));
   }));
 
   // 3. Trend: daily average, last 30 days (state level when a district is chosen).
-  const trendBox = el("div", { class: "trend" }, el("p", { class: "small muted" }, "Memuatkan trend…"));
+  const trendBox = el("div", { class: "trend" }, el("p", { class: "small muted" }, t("trend.loading")));
 
   const w = fama.window;
   const star = el("button", {
     type: "button", class: `close star-btn${favs.has(key) ? " on" : ""}`,
-    "aria-label": favs.has(key) ? "Buang dari kegemaran" : "Simpan sebagai kegemaran", "aria-pressed": String(favs.has(key)),
+    "aria-label": favs.has(key) ? t("fav.remove") : t("fav.add"), "aria-pressed": String(favs.has(key)),
     onclick: () => {
       toggleFav(key);
       const on = favs.has(key);
       star.textContent = on ? "★" : "☆"; star.classList.toggle("on", on);
       star.setAttribute("aria-pressed", String(on));
-      star.setAttribute("aria-label", on ? "Buang dari kegemaran" : "Simpan sebagai kegemaran");
-      toast(on ? "Disimpan dalam Kegemaran." : "Dibuang dari Kegemaran.");
+      star.setAttribute("aria-label", on ? t("fav.remove") : t("fav.add"));
+      toast(on ? t("fav.added") : t("fav.removed"));
       renderFama();
     },
   }, favs.has(key) ? "★" : "☆");
@@ -434,25 +436,26 @@ async function openFamaDetail(e) {
       el("div", {}, el("h3", { id: "fd-title" }, e.item),
         el("p", { class: "small muted" }, `${e.grade} · RM / ${e.unit} · ${locLabel(fs.state, fs.district)}`)),
       el("div", { class: "head-btns" }, star,
-        el("button", { type: "button", class: "close", "aria-label": "Tutup", onclick: () => dlg.close() }, "✕"))),
-    el("h4", {}, "Rantaian harga"),
+        el("button", { type: "button", class: "close", "aria-label": t("close"), onclick: () => dlg.close() }, "✕"))),
+    el("h4", {}, t("chain")),
     chainBox,
     lad && run ? el("p", { class: "small" },
-      `Harga runcit ${Math.round(((run - lad) / lad) * 100)}% lebih tinggi daripada harga ladang.`) : null,
-    el("h4", {}, `Trend 30 hari (${fs.level}, ${fs.state ? tc(fs.state) : "Seluruh Malaysia"})`),
+      t("markup", { p: Math.round(((run - lad) / lad) * 100) })) : null,
+    el("h4", {}, t("trend.title", { lvl: lvlName(fs.level), loc: fs.state ? tc(fs.state) : t("all.malaysia") })),
     trendBox,
-    el("h4", {}, `Mengikut ${fs.state ? `daerah di ${tc(fs.state)}` : "negeri"} (${fs.level})`),
-    peers.length ? peerList : el("p", { class: "small muted" }, "Tiada data lokasi lain."),
-    el("button", { type: "button", class: "btn primary wide", onclick: () => shareText(famaShareText(e, chain)) }, "Kongsi harga"),
+    el("h4", {}, fs.state ? t("by.district", { st: tc(fs.state), lvl: lvlName(fs.level) }) : t("by.state", { lvl: lvlName(fs.level) })),
+    peers.length ? peerList : el("p", { class: "small muted" }, t("no.peers")),
+    el("button", { type: "button", class: "btn primary wide", onclick: () => shareText(famaShareText(e, chain)) }, t("share.price")),
     el("p", { class: "small muted" },
-      w ? `Purata ${w.days} hari (${shortDate(w.from)} – ${fmtDate(w.to)}). ` : "",
-      el("a", { href: fama.sources?.fama?.url || "https://www.fama.gov.my/harga-pasaran-terkini", target: "_blank", rel: "noopener" }, "Semak di FAMA ↗")),
+      w ? t("window.short", { n: w.days, from: shortDate(w.from), to: fmtDate(w.to) }) : "",
+      el("a", { href: fama.sources?.fama?.url || "https://www.fama.gov.my/harga-pasaran-terkini", target: "_blank", rel: "noopener" }, t("src.check", { s: "FAMA" }))),
   );
   if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
 
   try {
-    const t = await ensureTrend();
-    const raw = t.series[`${fs.level}|${fs.state}|${key}`];
+    // (not called "t": that name is the translation function)
+    const trend = await ensureTrend();
+    const raw = trend.series[`${fs.level}|${fs.state}|${key}`];
     const vals = raw?.map((d) => (d ? d[0] : null));
     const weak = raw?.map((d) => !!d && d[1] < FEW()) || [];
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -461,16 +464,16 @@ async function openFamaDetail(e) {
     if (vals && lineChart(svg, vals, 110, weak)) {
       const days = vals.filter((v) => v != null).length;
       const nWeak = weak.filter(Boolean).length;
-      svg.setAttribute("aria-label", `Trend harga ${e.item}, ${days} hari ada rekod`);
+      svg.setAttribute("aria-label", t("trend.aria", { item: e.item, n: days }));
       trendBox.replaceChildren(svg,
-        el("div", { class: "chart-axis small muted" }, el("span", {}, shortDate(t.dates[0])), el("span", {}, shortDate(t.dates[t.dates.length - 1]))),
-        el("p", { class: "small muted" }, `Purata harian · ${days} daripada ${vals.length} hari ada rekod.` +
-          (nWeak ? ` Titik kosong ○ = kurang ${FEW()} rekod hari itu (kurang tepat).` : "")));
+        el("div", { class: "chart-axis small muted" }, el("span", {}, shortDate(trend.dates[0])), el("span", {}, shortDate(trend.dates[trend.dates.length - 1]))),
+        el("p", { class: "small muted" }, t("trend.days", { d: days, n: vals.length }) +
+          (nWeak ? t("trend.weak", { few: FEW() }) : "")));
     } else {
-      trendBox.replaceChildren(el("p", { class: "small muted" }, "Tidak cukup rekod untuk trend."));
+      trendBox.replaceChildren(el("p", { class: "small muted" }, t("trend.few")));
     }
   } catch {
-    trendBox.replaceChildren(el("p", { class: "small muted" }, "Trend tidak dapat dimuatkan."));
+    trendBox.replaceChildren(el("p", { class: "small muted" }, t("trend.fail")));
   }
 }
 
@@ -483,9 +486,9 @@ function renderPc() {
   const rows = pcItems.filter((r) => r.state === state && (!m || m.test(r.item)));
   $("pc-list").replaceChildren(...rows.map((r) =>
     el("li", {},
-      el("div", { class: "it" }, el("b", {}, r.item), el("span", {}, `${r.unit} · ${r.premises} premis`)),
+      el("div", { class: "it" }, el("b", {}, r.item), el("span", {}, t("kpdn.premises", { u: r.unit, n: r.premises }))),
       el("div", { class: "pr" }, el("b", {}, `RM ${rm(r.median)}`), el("span", {}, `${rm(r.min)} – ${rm(r.max)}`)))));
-  if (!rows.length) $("pc-list").append(el("li", {}, el("span", { class: "muted" }, "Tiada data.")));
+  if (!rows.length) $("pc-list").append(el("li", {}, el("span", { class: "muted" }, t("no.data"))));
 }
 
 function fillStates() {
@@ -497,16 +500,17 @@ function fillStates() {
 }
 
 /* ---------- Info: version, changelog, collection history ---------- */
-const fullTime = (iso) => (iso ? `${fmtDate(iso)}, ${iso.slice(11, 16)}` : "—"); // stored in Malaysia time
+const fullTime = (iso) => (iso ? `${fmtDate(iso)}${LANG === "zh" ? " " : ", "}${iso.slice(11, 16)}` : "—"); // stored in Malaysia time
 let latestGenerated = null;
 let infoLoaded = 0;
+let infoLog = null, infoHist = null; // kept so a language switch can redraw without reloading
 
 function renderAppInfo() {
   const rows = [
-    ["Versi", VERSION],
-    ["Dikeluarkan", RELEASED ? fullTime(RELEASED) : "—"],
-    ["Binaan", BUILD],
-    ["Data dikemas kini", fullTime(latestGenerated)],
+    [t("ver"), VERSION],
+    [t("released"), RELEASED ? fullTime(RELEASED) : "—"],
+    [t("buildid"), BUILD],
+    [t("data.updated"), fullTime(latestGenerated)],
   ];
   $("app-info").replaceChildren(...rows.flatMap(([k, v]) => [el("dt", {}, k), el("dd", {}, v)]));
 }
@@ -516,10 +520,10 @@ function renderChangelog(log) {
     el("li", { class: v.version === VERSION ? "cur" : "" },
       el("div", { class: "cl-head" },
         el("b", { class: "ver" }, v.version),
-        v.version === VERSION ? el("span", { class: "pill ok" }, "Versi anda") : null,
-        el("span", { class: "small muted" }, v.released_at ? fullTime(v.released_at) : "Belum dikeluarkan")),
-      el("p", { class: "cl-title" }, v.title),
-      el("ul", {}, ...v.notes.map((n) => el("li", { class: "small" }, n))))));
+        v.version === VERSION ? el("span", { class: "pill ok" }, t("your.ver")) : null,
+        el("span", { class: "small muted" }, v.released_at ? fullTime(v.released_at) : t("unreleased"))),
+      el("p", { class: "cl-title" }, (LANG === "zh" && v.title_zh) || v.title),
+      el("ul", {}, ...((LANG === "zh" && v.notes_zh) || v.notes).map((n) => el("li", { class: "small" }, n))))));
 }
 
 function renderHistory(items) {
@@ -533,23 +537,24 @@ function renderHistory(items) {
     runs.set(key, r);
   }
   const list = [...runs.values()].sort((a, b) => (a.time < b.time ? 1 : -1));
-  const TRIG = { auto: "Auto", manual: "Manual", local: "Lain" };
+  const TRIG = { auto: t("trig.auto"), manual: t("trig.manual"), local: t("trig.local") };
   const cell = (h) => !h ? el("td", { class: "na" }, "—")
     : el("td", { class: h.ok ? "ok" : "bad", title: h.note || "" },
       el("b", {}, h.ok ? "✓" : "✗"), el("span", { class: "t" }, h.time.slice(11, 16)));
-  const head = el("tr", {}, ...["Masa", "MPOB", "FAMA", "KPDN"].map((t) => el("th", {}, t)));
+  const head = el("tr", {}, ...[t("hist.time"), "MPOB", "FAMA", "KPDN"].map((h) => el("th", {}, h)));
   const body = list.flatMap((r) => {
-    const notes = Object.entries(r.src).filter(([, h]) => h.note).map(([k, h]) => `${SHORT[k] || k}: ${h.note}`);
+    const note = (h) => (LANG === "zh" && h.note_zh) || h.note;
+    const notes = Object.entries(r.src).filter(([, h]) => h.note).map(([k, h]) => `${SHORT[k] || k}: ${note(h)}`);
     return [
       el("tr", {},
-        el("td", { class: "when" }, el("b", {}, fullTime(r.time).replace(/ \d{4},/, ",")),
+        el("td", { class: "when" }, el("b", {}, fmtTime(r.time)),
           el("span", { class: "t" }, `${TRIG[r.trigger] || r.trigger || "—"} · ${r.time.slice(0, 4)}`)),
         cell(r.src.mpob), cell(r.src.fama), cell(r.src.pricecatcher)),
       notes.length ? el("tr", { class: "note-row" }, el("td", { colspan: "4", class: "small muted" }, notes.join(" · "))) : null,
     ];
   });
   $("hist").replaceChildren(el("thead", {}, head),
-    el("tbody", {}, ...(body.length ? body : [el("tr", {}, el("td", { colspan: "4", class: "muted" }, "Tiada rekod lagi."))])));
+    el("tbody", {}, ...(body.length ? body : [el("tr", {}, el("td", { colspan: "4", class: "muted" }, t("hist.none")))])));
 }
 
 async function loadInfo() {
@@ -558,17 +563,17 @@ async function loadInfo() {
   infoLoaded = Date.now();
   try {
     const [log, hist] = await Promise.all([getJSON("changelog.json"), getJSON("api/history.json")]);
-    renderChangelog(log);
-    renderHistory(hist.items || []);
+    infoLog = log; infoHist = hist.items || [];
+    renderChangelog(infoLog);
+    renderHistory(infoHist);
   } catch (e) {
     infoLoaded = 0;
-    $("changelog").replaceChildren(el("li", { class: "muted small" }, "Gagal memuatkan. Cuba lagi nanti."));
+    $("changelog").replaceChildren(el("li", { class: "muted small" }, t("info.fail")));
   }
 }
 
 /* ---------- share the app ---------- */
 const APP_URL = "https://bryanwoo988.github.io/TanaPriceInfo/";
-const SHARE_TEXT = "Harga Harian: harga BTS sawit (MPOB), harga pasaran FAMA dan harga runcit KPDN. Percuma, boleh dipasang di skrin utama telefon.";
 
 function shareMsg(text) {
   $("share-msg").textContent = text;
@@ -578,18 +583,18 @@ function shareMsg(text) {
 async function copyLink() {
   try {
     await navigator.clipboard.writeText(APP_URL);
-    shareMsg("Pautan disalin.");
+    shareMsg(t("link.copied"));
   } catch {
     // Older browsers / no permission: select the text so the user can copy it.
     const r = document.createRange(); r.selectNodeContents($("share-url"));
     const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
-    shareMsg("Tekan lama pada pautan untuk salin.");
+    shareMsg(t("link.press"));
   }
 }
 
 $("share-btn").addEventListener("click", async () => {
   if (navigator.share) {
-    try { await navigator.share({ title: "Harga Harian", text: SHARE_TEXT, url: APP_URL }); }
+    try { await navigator.share({ title: "Harga Harian", text: t("share.app"), url: APP_URL }); }
     catch (e) { if (e?.name !== "AbortError") copyLink(); } // user closed the sheet: do nothing
   } else {
     copyLink();
@@ -631,8 +636,8 @@ const ADD_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="t
 
 function step(n, html) {
   const li = el("li", {}, el("span", { class: "n" }, String(n)));
-  const t = el("span", { class: "t" }); t.innerHTML = html; // static text + our own icons only
-  li.append(t);
+  const txt = el("span", { class: "t" }); txt.innerHTML = html; // static text + our own icons only
+  li.append(txt);
   return li;
 }
 
@@ -642,50 +647,50 @@ function renderInstallGuide() {
   let body;
   if (inAppBrowser) {
     body = [
-      el("p", {}, "Pelayar dalam aplikasi ini tidak boleh memasang Harga Harian. Buka dalam pelayar biasa dahulu:"),
+      el("p", {}, t("ig.inapp")),
       el("ol", { class: "steps" },
-        step(1, `Tekan menu ${MENU_ICON} atau <b>⋯</b> di penjuru atas.`),
-        step(2, `Pilih <b>Buka dalam ${isIOS ? "Safari" : "Chrome"}</b> (atau <i>Open in browser</i>).`),
-        step(3, "Kemudian ikut panduan pemasangan yang muncul.")),
+        step(1, t("ig.inapp1", { MENU: MENU_ICON })),
+        step(2, t("ig.inapp2", { B: isIOS ? "Safari" : "Chrome" })),
+        step(3, t("ig.inapp3"))),
     ];
   } else if (installEvent) {
     body = [
-      el("p", {}, "Pasang Harga Harian di skrin utama untuk buka terus seperti aplikasi biasa, termasuk tanpa internet."),
+      el("p", {}, t("ig.onetap")),
       el("button", { type: "button", class: "btn primary wide", onclick: async () => {
         const ev = installEvent; installEvent = null;
         ev.prompt();
         const { outcome } = await ev.userChoice.catch(() => ({}));
         if (outcome === "accepted") close(); else renderInstallGuide();
-      } }, "Pasang sekarang"),
+      } }, t("ig.install")),
     ];
   } else if (isIOS) {
     body = [
-      el("p", {}, "Tambah Harga Harian ke skrin utama untuk buka terus seperti aplikasi biasa, termasuk tanpa internet."),
+      el("p", {}, t("ig.ios")),
       el("ol", { class: "steps" },
-        step(1, `Dalam <b>Safari</b>, tekan butang Kongsi ${SHARE_ICON} (di bawah, atau dalam menu <b>⋯</b>).`),
-        step(2, `Tatal ke bawah dan pilih <b>Tambah ke Skrin Utama</b> ${ADD_ICON} <span class="muted">(Add to Home Screen)</span>.`),
-        step(3, "Tekan <b>Tambah</b> di penjuru kanan atas.")),
+        step(1, t("ig.ios1", { SHARE: SHARE_ICON })),
+        step(2, t("ig.ios2", { ADD: ADD_ICON })),
+        step(3, t("ig.ios3"))),
     ];
   } else if (isAndroid) {
     body = [
-      el("p", {}, "Pasang Harga Harian di skrin utama untuk buka terus seperti aplikasi biasa, termasuk tanpa internet."),
+      el("p", {}, t("ig.onetap")),
       el("ol", { class: "steps" },
-        step(1, `Dalam <b>Chrome</b>, tekan menu ${MENU_ICON} di penjuru kanan atas.`),
-        step(2, `Pilih <b>Pasang apl</b> atau <b>Tambah ke skrin utama</b> <span class="muted">(Install app / Add to Home screen)</span>.`),
-        step(3, "Tekan <b>Pasang</b>.")),
+        step(1, t("ig.and1", { MENU: MENU_ICON })),
+        step(2, t("ig.and2")),
+        step(3, t("ig.and3"))),
     ];
   } else {
     body = [
-      el("p", {}, "Buka laman ini di telefon dan tambah ke skrin utama. Di komputer, pelayar Chrome atau Edge menunjukkan butang Pasang di bar alamat."),
+      el("p", {}, t("ig.desktop")),
     ];
   }
   d.replaceChildren(
     el("div", { class: "sheet-head" },
-      el("div", {}, el("h3", { id: "ig-title", tabindex: "-1", autofocus: "" }, "Pasang di skrin utama"),
-        el("p", { class: "small muted" }, "Percuma · tiada iklan · tiada pendaftaran")),
-      el("button", { type: "button", class: "close", "aria-label": "Tutup", onclick: close }, "✕")),
+      el("div", {}, el("h3", { id: "ig-title", tabindex: "-1", autofocus: "" }, t("ig.title")),
+        el("p", { class: "small muted" }, t("ig.sub"))),
+      el("button", { type: "button", class: "close", "aria-label": t("close"), onclick: close }, "✕")),
     ...body,
-    el("button", { type: "button", class: "btn wide later", onclick: close }, "Nanti"),
+    el("button", { type: "button", class: "btn wide later", onclick: close }, t("ig.later")),
   );
 }
 
@@ -720,7 +725,7 @@ function showView(name) {
   for (const b of document.querySelectorAll(".tabs button")) {
     b.setAttribute("aria-selected", String(b.dataset.tab === name));
   }
-  for (const t of [...TABS, "info"]) $(`tab-${t}`).hidden = t !== name;
+  for (const v of [...TABS, "info"]) $(`tab-${v}`).hidden = v !== name;
   $("info-btn").setAttribute("aria-pressed", String(info));
   store("tab", name);
   if (info) loadInfo();
@@ -734,6 +739,7 @@ const VERSION = "__VERSION__";   // from web/changelog.json
 const RELEASED = "__RELEASED__"; // when this version reached main (from git), Malaysia time
 const DATA_REFRESH_MS = 10 * 60_000;
 let lastLoad = 0;
+let latestSources = null;
 
 async function load() {
   lastLoad = Date.now();
@@ -742,8 +748,9 @@ async function load() {
   try {
     const [latest, mpob, famaData] = await Promise.all(
       [getJSON("api/latest.json"), getJSON("api/mpob.json"), getJSON("api/fama.json")]);
-    $("updated").textContent = `Laman dikemas kini ${fmtTime(latest.generated_at)}`;
     latestGenerated = latest.generated_at;
+    latestSources = latest.sources || {};
+    $("updated").textContent = t("updated", { t: fmtTime(latestGenerated) });
     if (!$("tab-info").hidden) { infoLoaded = 0; loadInfo(); }
     const sources = latest.sources || {};
     for (const k of ["mpob", "fama", "pricecatcher"]) renderSource(k, sources[k]);
@@ -764,7 +771,7 @@ async function load() {
     fillStates();
     renderPc();
   } catch (e) {
-    $("updated").textContent = "Gagal memuatkan data. Cuba lagi nanti.";
+    $("updated").textContent = t("load.fail");
     console.error(e);
   }
 }
@@ -834,5 +841,30 @@ document.addEventListener("visibilitychange", () => {
 });
 addEventListener("online", () => { if (Date.now() - lastLoad > 60_000) load(); });
 
-$("build").textContent = `Versi ${VERSION} · ${BUILD}`;
+/* ---------- language switch: redraw everything from data already loaded ---------- */
+function rerenderAll() {
+  applyStaticText();
+  $("build").textContent = t("build", { v: VERSION, b: BUILD });
+  if (latestGenerated) $("updated").textContent = t("updated", { t: fmtTime(latestGenerated) });
+  if (latestSources) {
+    for (const k of ["mpob", "fama", "pricecatcher"]) renderSource(k, latestSources[k]);
+    renderHealth(latestSources);
+  }
+  if (mpobLatest) { renderMpob(mpobLatest); drawChart(); $("calc-region").replaceChildren(); renderCalc(); }
+  if (fama) { renderFamaControls(); renderFama(); }
+  renderPc();
+  renderAppInfo();
+  if (infoLog) renderChangelog(infoLog);
+  if (infoHist) renderHistory(infoHist);
+  if ($("install-guide").open) renderInstallGuide();
+  if ($("fama-detail").open) $("fama-detail").close();
+}
+$("lang-btn").addEventListener("click", () => {
+  LANG = LANG === "zh" ? "ms" : "zh";
+  store("lang", LANG);
+  rerenderAll();
+});
+
+applyStaticText();
+$("build").textContent = t("build", { v: VERSION, b: BUILD });
 load().then(maybeShowInstallGuide);
