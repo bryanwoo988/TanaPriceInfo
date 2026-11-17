@@ -1,6 +1,6 @@
 # TanaPriceInfo
 
-每日价格自动收集（MPOB + FAMA + PriceCatcher）。每天马来西亚时间下午 6:13 由 GitHub Actions 自动跑，把价格存成 CSV 提交回这个 repo，给 PWA 读取。
+每日价格自动收集（MPOB + FAMA + PriceCatcher）。每天马来西亚时间下午 6:13 由 GitHub Actions 自动跑（7:43pm 再跑一次备用，因为 GitHub 有时会漏跑或延迟定时任务；同一天跑两次只会覆盖同样的数据），把价格存成 CSV 提交回这个 repo，给 PWA 读取。
 
 | 来源 | 拿什么 | 存在哪里 | 可靠度 |
 |---|---|---|---|
