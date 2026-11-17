@@ -16,7 +16,12 @@
 </head>
 <body>
   <header class="top">
-    <h1>Harga Harian</h1>
+    <div class="top-row">
+      <h1>Harga Harian</h1>
+      <button type="button" id="info-btn" class="icon-btn" aria-label="Info: versi, rekod kemas kini, sejarah kutipan" aria-pressed="false">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="7.3" r="1.5" fill="currentColor"/></svg>
+      </button>
+    </div>
     <p id="updated" class="muted">Memuatkan…</p>
     <p id="health" class="health" hidden></p>
   </header>
@@ -25,7 +30,7 @@
   <div id="offline" class="banner" hidden>Luar talian — memaparkan data terakhir yang disimpan.</div>
 
   <main>
-    <section id="tab-utama" class="tab" aria-labelledby="t-utama">
+    <section id="tab-mpob" class="tab" aria-labelledby="t-mpob">
       <article class="card" id="mpob">
         <div class="card-head">
           <h2>Harga BTS Sawit (MPOB)</h2>
@@ -40,29 +45,29 @@
           <div class="chart-axis small muted"><span id="chart-from"></span><span id="chart-to"></span></div>
         </div>
       </article>
+    </section>
 
+    <section id="tab-fama" class="tab" aria-labelledby="t-fama" hidden>
       <article class="card" id="fama">
-        <div class="card-head">
-          <h2>Harga Pasaran (FAMA)</h2>
-        </div>
+        <h2 class="sr-only">Harga Pasaran (FAMA)</h2>
         <div class="src" id="src-fama"></div>
         <div class="seg" id="fama-levels" role="group" aria-label="Peringkat harga"></div>
         <div class="row2">
-          <label class="fld"><span class="small muted">Negeri</span><select id="fama-state"></select></label>
-          <label class="fld"><span class="small muted">Daerah</span><select id="fama-district"></select></label>
+          <select id="fama-state" aria-label="Negeri"></select>
+          <select id="fama-district" aria-label="Daerah"></select>
         </div>
         <div class="chips" id="fama-cats" role="group" aria-label="Kategori"></div>
         <input type="search" id="fama-search" placeholder="Cari barang… (cth. ayam, cili)" autocomplete="off">
-        <p class="small muted" id="fama-window"></p>
         <ul class="list" id="fama-list"></ul>
         <p class="muted small center" id="fama-count"></p>
+        <p class="small muted" id="fama-window"></p>
       </article>
     </section>
 
-    <section id="tab-runcit" class="tab" aria-labelledby="t-runcit" hidden>
+    <section id="tab-kpdn" class="tab" aria-labelledby="t-kpdn" hidden>
       <article class="card">
         <div class="card-head">
-          <h2>Harga Runcit (PriceCatcher)</h2>
+          <h2>Harga Runcit (KPDN PriceCatcher)</h2>
         </div>
         <div class="src" id="src-pricecatcher"></div>
         <div class="row">
@@ -74,7 +79,7 @@
         <p class="muted small center">Harga tengah (median) daripada premis yang dilaporkan.</p>
       </article>
     </section>
-    <section id="tab-info" class="tab" aria-labelledby="t-info" hidden>
+    <section id="tab-info" class="tab" aria-label="Info" hidden>
       <article class="card">
         <h2>Aplikasi</h2>
         <dl class="kv" id="app-info"></dl>
@@ -96,9 +101,9 @@
   <dialog id="fama-detail" class="sheet" aria-labelledby="fd-title"></dialog>
 
   <nav class="tabs" role="tablist">
-    <button role="tab" id="t-utama" aria-selected="true" data-tab="utama">Utama</button>
-    <button role="tab" id="t-runcit" aria-selected="false" data-tab="runcit">Runcit</button>
-    <button role="tab" id="t-info" aria-selected="false" data-tab="info">Info</button>
+    <button role="tab" id="t-mpob" aria-selected="true" data-tab="mpob">MPOB<i class="dot" hidden></i></button>
+    <button role="tab" id="t-fama" aria-selected="false" data-tab="fama">FAMA<i class="dot" hidden></i></button>
+    <button role="tab" id="t-kpdn" aria-selected="false" data-tab="kpdn">KPDN<i class="dot" hidden></i></button>
   </nav>
 
   <script src="app.js"></script>
