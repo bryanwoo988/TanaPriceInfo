@@ -22,6 +22,7 @@ Usage:
   python scripts/build_site.py
 """
 import csv
+import hashlib
 import json
 import math
 import shutil
@@ -219,6 +220,25 @@ def sources(m: dict, f: dict, p: dict) -> dict:
     return out
 
 
+def app_build_id() -> str:
+    """Short hash of everything in web/: changes exactly when the app changes."""
+    h = hashlib.sha256()
+    for f in sorted(p for p in WEB.rglob("*") if p.is_file()):
+        h.update(f.relative_to(WEB).as_posix().encode())
+        h.update(f.read_bytes())
+    return h.hexdigest()[:10]
+
+
+def stamp_build(build: str) -> None:
+    """Write the build id into sw.js (so browsers see an update) and app.js."""
+    for name in ("sw.js", "app.js"):
+        f = OUT / name
+        text = f.read_text(encoding="utf-8")
+        if "__BUILD__" not in text:
+            raise SystemExit(f"[site] __BUILD__ placeholder missing in {name}")
+        f.write_text(text.replace("__BUILD__", build), encoding="utf-8")
+
+
 def write(path: Path, obj) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, ensure_ascii=False, separators=(",", ":")),
@@ -229,6 +249,8 @@ def main():
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(WEB, OUT)
+    build = app_build_id()
+    stamp_build(build)
     if DATA.exists():
         shutil.copytree(DATA, OUT / "data", ignore=shutil.ignore_patterns("raw", "*.png"))
 
@@ -252,6 +274,8 @@ def main():
         "pricecatcher": p,
     })
     (OUT / ".nojekyll").write_text("")
+    write(OUT / "version.json", {"build": build, "generated_at": now})
+    print(f"[site] app build {build}")
     print(f"[site] mpob {len(m['days'])} days, fama {len(f['items'])} national+state "
           f"+ {len(fd['items'])} district entries, "
           f"pricecatcher {len(p['items'])} rows -> {OUT}")

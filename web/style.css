@@ -199,3 +199,6 @@ select:disabled { opacity: .55; }
 .peers .bar i { display: block; height: 100%; background: var(--brand); opacity: .75; }
 .peers b { font-variant-numeric: tabular-nums; }
 .sheet a { color: var(--brand); font-weight: 600; }
+
+.banner.update { display: block; width: 100%; border: 0; font: inherit; font-weight: 600; cursor: pointer; background: var(--brand); color: var(--brand-ink); }
+.banner.update[hidden] { display: none; }
