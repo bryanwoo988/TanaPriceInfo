@@ -43,11 +43,16 @@
       <article class="card" id="fama">
         <div class="card-head">
           <h2>Harga Pasaran (FAMA)</h2>
-          <span class="badge" id="fama-badge" hidden>Belum disahkan</span>
         </div>
         <div class="src" id="src-fama"></div>
-        <p class="note small" id="fama-note" hidden>Data FAMA masih disemak. Harga ialah purata dan mungkin tidak tepat.</p>
+        <div class="seg" id="fama-levels" role="group" aria-label="Peringkat harga"></div>
+        <div class="row2">
+          <label class="fld"><span class="small muted">Negeri</span><select id="fama-state"></select></label>
+          <label class="fld"><span class="small muted">Daerah</span><select id="fama-district"></select></label>
+        </div>
+        <div class="chips" id="fama-cats" role="group" aria-label="Kategori"></div>
         <input type="search" id="fama-search" placeholder="Cari barang… (cth. ayam, cili)" autocomplete="off">
+        <p class="small muted" id="fama-window"></p>
         <ul class="list" id="fama-list"></ul>
         <p class="muted small center" id="fama-count"></p>
       </article>
@@ -69,6 +74,8 @@
       </article>
     </section>
   </main>
+
+  <dialog id="fama-detail" class="sheet" aria-labelledby="fd-title"></dialog>
 
   <nav class="tabs" role="tablist">
     <button role="tab" id="t-utama" aria-selected="true" data-tab="utama">Utama</button>

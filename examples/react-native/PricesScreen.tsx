@@ -7,8 +7,10 @@ import {
 } from 'react-native';
 import { usePrices } from './usePrices';
 import {
-  FamaItem, Region, REGION_NAMES, Source, fmtDate, fmtRM, freshness,
+  FamaItem, FamaLevel, Region, REGION_NAMES, Source, fmtDate, fmtRM, freshness,
 } from './tanaPrices';
+
+const LEVELS: FamaLevel[] = ['Ladang', 'Borong', 'Runcit'];
 
 const C = {
   bg: '#f4f6f3', card: '#ffffff', text: '#17201a', muted: '#5d6b62', line: '#e2e7e3',
@@ -43,13 +45,15 @@ function SourceBar({ src }: { src?: Source }) {
 export default function PricesScreen() {
   const { data, loading, refreshing, fromCache, error, refresh } = usePrices();
   const [q, setQ] = useState('');
+  const [level, setLevel] = useState<FamaLevel>('Ladang');
 
   const fama = useMemo<FamaItem[]>(() => {
-    const items = data?.fama.items ?? [];
+    // latest.json has national averages; per state/district use api/fama.json / fama_daerah.json
+    const items = (data?.fama.items ?? []).filter((i) => i.level === level && i.state === null);
     const s = q.trim().toUpperCase();
     // Match at word start: "ayam" finds "AYAM HIDUP", not "BAYAM".
     return s ? items.filter((i) => (' ' + i.item.toUpperCase()).includes(' ' + s)) : items;
-  }, [data, q]);
+  }, [data, q, level]);
 
   if (loading && !data) {
     return <View style={styles.center}><ActivityIndicator color={C.brand} /></View>;
@@ -90,10 +94,20 @@ export default function PricesScreen() {
       </View>
       <View style={[styles.card, styles.cardTop]}>
         <Text style={styles.h2}>Harga Pasaran (FAMA)</Text>
-        {data.fama.verified === false ? (
-          <Text style={[styles.small, { color: C.warnInk }]}>Belum disahkan — harga ialah purata.</Text>
-        ) : null}
         <SourceBar src={data.sources.fama} />
+        <View style={styles.seg}>
+          {LEVELS.map((l) => (
+            <Pressable key={l} onPress={() => setLevel(l)} style={[styles.segBtn, l === level && styles.segOn]}
+              accessibilityRole="button" accessibilityState={{ selected: l === level }}>
+              <Text style={[styles.segText, l === level && { color: C.brand }]}>{l}</Text>
+            </Pressable>
+          ))}
+        </View>
+        {data.fama.window ? (
+          <Text style={styles.small}>
+            Purata {data.fama.window.days} hari ({fmtDate(data.fama.window.from)} – {fmtDate(data.fama.window.to)}), seluruh Malaysia
+          </Text>
+        ) : null}
         <TextInput
           style={styles.input} value={q} onChangeText={setQ}
           placeholder="Cari barang… (cth. ayam)" placeholderTextColor={C.muted}
@@ -108,13 +122,13 @@ export default function PricesScreen() {
       style={{ backgroundColor: C.bg }}
       contentContainerStyle={{ padding: 16 }}
       data={fama}
-      keyExtractor={(i, idx) => `${i.item}|${i.grade}|${idx}`}
+      keyExtractor={(i) => `${i.level}|${i.item}|${i.grade}|${i.unit}`}
       ListHeaderComponent={header}
       renderItem={({ item }) => (
         <View style={styles.item}>
           <View style={{ flex: 1 }}>
             <Text style={styles.itemName}>{item.item}</Text>
-            <Text style={styles.small}>{[item.grade, item.unit].filter(Boolean).join(' · ')}</Text>
+            <Text style={styles.small}>{[item.grade, item.unit, `${item.records} rekod`].filter(Boolean).join(' · ')}</Text>
           </View>
           <Text style={styles.price}>{fmtRM(item.price)}</Text>
         </View>
@@ -139,6 +153,10 @@ const styles = StyleSheet.create({
   pillOk: { backgroundColor: C.okBg },
   pillWarn: { backgroundColor: C.warnBg },
   link: { color: C.brand, fontWeight: '600', fontSize: 14 },
+  seg: { flexDirection: 'row', backgroundColor: '#f1f4f2', borderRadius: 12, padding: 4, gap: 4, marginVertical: 6 },
+  segBtn: { flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: 'center' },
+  segOn: { backgroundColor: C.card },
+  segText: { fontWeight: '600', color: C.muted },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 8 },
   cell: { width: '48.5%', backgroundColor: '#f1f4f2', borderRadius: 10, padding: 10 },
   big: { fontSize: 22, fontWeight: '700', color: C.text, fontVariant: ['tabular-nums'] },

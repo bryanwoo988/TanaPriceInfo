@@ -154,19 +154,147 @@ function drawChart() {
 }
 
 /* ---------- FAMA ---------- */
-let famaItems = [];
+const FAMA_LEVELS = ["Ladang", "Borong", "Runcit"];
+const FAMA_CATS = [["", "Semua"], ["Sayur-Sayuran", "Sayur"], ["Buah-Buahan", "Buah"], ["Ternakan", "Ternakan"]];
+let fama = null;       // api/fama.json: national + state
+let famaDist = null;   // api/fama_daerah.json: loaded only when a district is needed
+let famaDistReq = null;
+const fs = {
+  level: FAMA_LEVELS.includes(store("fama-level")) ? store("fama-level") : "Ladang",
+  state: store("fama-state") || "",
+  district: store("fama-district") || "",
+  cat: "",
+};
 
-function renderFama() {
-  const m = matcher($("fama-search").value);
-  const rows = famaItems.filter((r) => !m || m.test(r.item));
+// "NEGERI SEMBILAN" -> "Negeri Sembilan", "W.P. KUALA LUMPUR" -> "W.P. Kuala Lumpur"
+const tc = (s) => (s ? s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : s);
+const itemKey = (e) => `${e.item}|${e.grade}|${e.unit}`;
+const shortDate = (iso) => fmtDate(iso).replace(/ \d{4}$/, "");
+const locLabel = (st, di) => (di ? `${tc(di)}, ${tc(st)}` : st ? tc(st) : "Seluruh Malaysia");
+
+function ensureDist() {
+  if (famaDist) return Promise.resolve(famaDist);
+  famaDistReq ??= getJSON("api/fama_daerah.json")
+    .then((d) => (famaDist = d))
+    .catch((e) => { famaDistReq = null; throw e; });
+  return famaDistReq;
+}
+
+function famaFind(level, st, di, key) {
+  const src = di ? famaDist?.items || [] : fama?.items || [];
+  return src.find((x) => x.level === level && (x.state || "") === st && (x.district || "") === di && itemKey(x) === key);
+}
+
+function renderFamaControls() {
+  $("fama-levels").replaceChildren(...FAMA_LEVELS.map((l) =>
+    el("button", {
+      type: "button", "aria-pressed": String(l === fs.level),
+      onclick: () => { fs.level = l; store("fama-level", l); renderFamaControls(); renderFama(); },
+    }, l)));
+
+  const states = Object.keys(fama?.states || {});
+  if (fs.state && !states.includes(fs.state)) fs.state = fs.district = "";
+  const st = $("fama-state");
+  st.replaceChildren(el("option", { value: "" }, "Semua negeri"),
+    ...states.map((s) => el("option", { value: s }, tc(s))));
+  st.value = fs.state;
+
+  const districts = fs.state ? fama.states[fs.state] || [] : [];
+  if (fs.district && !districts.includes(fs.district)) fs.district = "";
+  const di = $("fama-district");
+  di.replaceChildren(el("option", { value: "" }, fs.state ? "Semua daerah" : "Pilih negeri dahulu"),
+    ...districts.map((d) => el("option", { value: d }, tc(d))));
+  di.value = fs.district;
+  di.disabled = !fs.state;
+
+  $("fama-cats").replaceChildren(...FAMA_CATS.map(([v, label]) =>
+    el("button", {
+      type: "button", "aria-pressed": String(v === fs.cat),
+      onclick: () => { fs.cat = v; renderFamaControls(); renderFama(); },
+    }, label)));
+}
+
+async function renderFama() {
+  if (!fama) return;
   const list = $("fama-list");
-  list.replaceChildren(...rows.slice(0, LIST_LIMIT).map((r) =>
-    el("li", {},
-      el("div", { class: "it" }, el("b", {}, r.item), el("span", {}, [r.grade, r.unit].filter(Boolean).join(" · "))),
-      el("div", { class: "pr" }, el("b", {}, r.price == null ? "—" : `RM ${rm(r.price)}`)))));
-  $("fama-count").textContent = famaItems.length
-    ? `${rows.length} daripada ${famaItems.length} barang`
-    : "Tiada data.";
+  if (fs.district && !famaDist) {
+    list.replaceChildren(el("li", {}, el("span", { class: "muted" }, "Memuatkan harga daerah…")));
+    try { await ensureDist(); } catch {
+      list.replaceChildren(el("li", {}, el("span", { class: "muted" }, "Gagal memuatkan harga daerah.")));
+      return;
+    }
+  }
+  const w = fama.window;
+  $("fama-window").textContent = w
+    ? `Purata ${w.days} hari (${shortDate(w.from)} – ${fmtDate(w.to)}), ditimbang mengikut bilangan rekod. Tekan barang untuk banding peringkat & lokasi.`
+    : "";
+
+  const m = matcher($("fama-search").value);
+  const src = fs.district ? famaDist.items : fama.items;
+  const all = src.filter((e) => e.level === fs.level && (e.state || "") === fs.state && (e.district || "") === fs.district);
+  const rows = all.filter((e) => (!fs.cat || e.category === fs.cat) && (!m || m.test(e.item)));
+  list.replaceChildren(...rows.slice(0, LIST_LIMIT).map((e) =>
+    el("li", {}, el("button", { type: "button", class: "rowbtn", onclick: () => openFamaDetail(e) },
+      el("div", { class: "it" }, el("b", {}, e.item), el("span", {}, `${e.grade} · ${e.unit}`)),
+      el("div", { class: "pr" }, el("b", {}, `RM ${rm(e.price)}`),
+        el("span", {}, `${e.records} rekod` + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : "")))))));
+  if (!rows.length) {
+    list.append(el("li", {}, el("span", { class: "muted" },
+      all.length ? "Tiada padanan." : `Tiada harga ${fs.level} untuk ${locLabel(fs.state, fs.district)} dalam tempoh ini.`)));
+  }
+  $("fama-count").textContent = `${rows.length} barang · ${fs.level} · ${locLabel(fs.state, fs.district)}`;
+}
+
+async function openFamaDetail(e) {
+  const dlg = $("fama-detail");
+  const key = itemKey(e);
+  if (fs.state) { try { await ensureDist(); } catch { /* show what we have */ } }
+
+  // 1. Same place, three levels: farm -> wholesale -> retail.
+  const chain = FAMA_LEVELS.map((l) => [l, famaFind(l, fs.state, fs.district, key)]);
+  const lad = chain[0][1]?.price, run = chain[2][1]?.price;
+  const chainBox = el("div", { class: "chain" }, ...chain.flatMap(([l, x], i) => [
+    i ? el("span", { class: "arrow", "aria-hidden": "true" }, "→") : null,
+    el("div", { class: `lvl${l === fs.level ? " cur" : ""}` },
+      el("span", { class: "small muted" }, l),
+      el("b", {}, x ? rm(x.price) : "—"),
+      el("span", { class: "small muted" }, x ? `${x.records} rekod` : "tiada data")),
+  ]));
+
+  // 2. Same level, compare places: states (or districts of the chosen state).
+  const peers = fs.state
+    ? (famaDist?.items || []).filter((x) => x.level === fs.level && x.state === fs.state && itemKey(x) === key)
+    : fama.items.filter((x) => x.level === fs.level && x.state && !x.district && itemKey(x) === key);
+  peers.sort((a, b) => a.price - b.price);
+  const max = Math.max(...peers.map((x) => x.price), 0.01);
+  const lo = peers[0], hi = peers[peers.length - 1];
+  const peerList = el("ul", { class: "peers" }, ...peers.map((x) => {
+    const name = fs.state ? x.district : x.state;
+    const cur = fs.state ? x.district === fs.district : false;
+    const tag = peers.length > 1 && x === lo ? "Terendah" : peers.length > 1 && x === hi ? "Tertinggi" : "";
+    return el("li", { class: cur ? "cur" : "" },
+      el("span", { class: "pname" }, tc(name), tag ? el("em", { class: x === lo ? "lo" : "hi" }, tag) : null),
+      el("span", { class: "bar" }, el("i", { style: `width:${Math.round((x.price / max) * 100)}%` })),
+      el("b", {}, rm(x.price)));
+  }));
+
+  const w = fama.window;
+  dlg.replaceChildren(
+    el("div", { class: "sheet-head" },
+      el("div", {}, el("h3", { id: "fd-title" }, e.item),
+        el("p", { class: "small muted" }, `${e.grade} · RM / ${e.unit} · ${locLabel(fs.state, fs.district)}`)),
+      el("button", { type: "button", class: "close", "aria-label": "Tutup", onclick: () => dlg.close() }, "✕")),
+    el("h4", {}, "Rantaian harga"),
+    chainBox,
+    lad && run ? el("p", { class: "small" },
+      `Harga runcit ${Math.round(((run - lad) / lad) * 100)}% lebih tinggi daripada harga ladang.`) : null,
+    el("h4", {}, `Mengikut ${fs.state ? `daerah di ${tc(fs.state)}` : "negeri"} (${fs.level})`),
+    peers.length ? peerList : el("p", { class: "small muted" }, "Tiada data lokasi lain."),
+    el("p", { class: "small muted" },
+      w ? `Purata ${w.days} hari (${shortDate(w.from)} – ${fmtDate(w.to)}). ` : "",
+      el("a", { href: fama.sources?.fama?.url || "https://www.fama.gov.my/harga-pasaran-terkini", target: "_blank", rel: "noopener" }, "Semak di FAMA ↗")),
+  );
+  if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
 }
 
 /* ---------- PriceCatcher ---------- */
@@ -204,7 +332,8 @@ function showTab(name) {
 /* ---------- start ---------- */
 async function load() {
   try {
-    const [latest, mpob] = await Promise.all([getJSON("api/latest.json"), getJSON("api/mpob.json")]);
+    const [latest, mpob, famaData] = await Promise.all(
+      [getJSON("api/latest.json"), getJSON("api/mpob.json"), getJSON("api/fama.json")]);
     $("updated").textContent = `Laman dikemas kini ${fmtTime(latest.generated_at)}`;
     const sources = latest.sources || {};
     for (const k of ["mpob", "fama", "pricecatcher"]) renderSource(k, sources[k]);
@@ -214,9 +343,8 @@ async function load() {
     renderMpob(latest.mpob);
     drawChart();
 
-    const f = latest.fama || {};
-    famaItems = f.items || [];
-    $("fama-badge").hidden = $("fama-note").hidden = f.verified !== false;
+    fama = famaData;
+    renderFamaControls();
     renderFama();
 
     const p = latest.pricecatcher || {};
@@ -230,6 +358,18 @@ async function load() {
 }
 
 $("fama-search").addEventListener("input", renderFama);
+$("fama-state").addEventListener("change", () => {
+  fs.state = $("fama-state").value; fs.district = "";
+  store("fama-state", fs.state); store("fama-district", "");
+  renderFamaControls(); renderFama();
+});
+$("fama-district").addEventListener("change", () => {
+  fs.district = $("fama-district").value; store("fama-district", fs.district);
+  renderFama();
+});
+$("fama-detail").addEventListener("click", (ev) => {  // tap outside the sheet closes it
+  if (ev.target === ev.currentTarget) ev.currentTarget.close();
+});
 $("pc-search").addEventListener("input", renderPc);
 $("pc-state").addEventListener("change", () => { store("state", $("pc-state").value); renderPc(); });
 for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => showTab(b.dataset.tab));

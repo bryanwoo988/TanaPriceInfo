@@ -2,10 +2,10 @@
 // Copy this file into your app. Docs: README.md in this folder.
 
 export const API_URL = 'https://bryanwoo988.github.io/TanaPriceInfo/api/latest.json';
-export const SUPPORTED_SCHEMA = 1;
-const CACHE_KEY = 'tana:latest:v1';
+export const SUPPORTED_SCHEMA = 2;
+const CACHE_KEY = 'tana:latest:v2';
 
-// ---------- types (match api/latest.json, schema 1) ----------
+// ---------- types (match api/latest.json, schema 2) ----------
 
 export type SourceKey = 'mpob' | 'fama' | 'pricecatcher';
 export type Region = 'north' | 'south' | 'central' | 'east_coast' | 'sabah' | 'sarawak';
@@ -15,7 +15,7 @@ export interface Source {
   title: string;
   url: string;                       // official page to check the price
   home: string;
-  date_kind: 'price' | 'collected';  // FAMA gives no price date: "collected"
+  date_kind: 'price' | 'collected';
   max_age_days: number;
   data_date: string | null;          // YYYY-MM-DD
   last_attempt?: string | null;      // ISO time, Malaysia
@@ -31,7 +31,18 @@ export interface MpobLatest {
   change?: Record<Region, number | null>;
 }
 
-export interface FamaItem { item: string; grade: string; unit: string; price: number | null }
+export type FamaLevel = 'Ladang' | 'Borong' | 'Runcit';  // farm / wholesale / retail
+/** FAMA average over the window, weighted by number of price records. */
+export interface FamaItem {
+  level: FamaLevel;
+  state: string | null;      // null = all Malaysia (latest.json has only these)
+  district: string | null;   // per district: api/fama_daerah.json
+  item: string; grade: string; unit: string; category: string;
+  price: number;             // RM per unit
+  records: number;           // how many FAMA price records the average uses
+  latest_date: string;       // newest record in the window
+}
+export interface FamaWindow { from: string; to: string; days: number; method: string }
 export interface PcItem {
   state: string; item: string; unit: string; category: string;
   premises: number; median: number | null; min: number | null; max: number | null;
@@ -42,7 +53,7 @@ export interface Latest {
   generated_at: string;
   sources: Record<SourceKey, Source>;
   mpob: MpobLatest;
-  fama: { date: string | null; verified: boolean; items: FamaItem[] };
+  fama: { date: string | null; window: FamaWindow | null; levels: FamaLevel[]; items: FamaItem[] };
   pricecatcher: { date: string | null; items: PcItem[] };
 }
 

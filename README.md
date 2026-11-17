@@ -5,7 +5,7 @@
 | 来源 | 拿什么 | 存在哪里 | 可靠度 |
 |---|---|---|---|
 | MPOB | 每日 FFB 参考价，6 个区（RM / 1% OER） | `data/mpob_ffb_daily.csv` | 高：每月一个 PDF |
-| FAMA | Harga Pasaran Terkini（全部州、全部作物） | `data/fama_prices.csv`，每天一份在 `data/fama/` | 未验证：假设 FAMA 用 Power BI，要第一次跑过才知道 |
+| FAMA | Panduan Harga Harian：Ladang / Borong / Runcit，按日期、州、县、作物 | `data/fama/YYYY-MM.csv` | 中：已和 FAMA 网站核对一致；但靠抓 Power BI，FAMA 改版就可能坏 |
 | PriceCatcher（备用） | KPDN 每日蔬菜水果零售价，按州 | `data/pricecatcher/` | 高：data.gov.my 开放数据 |
 
 ## 设置（只做一次）
@@ -29,7 +29,7 @@
 
 网址：**https://bryanwoo988.github.io/TanaPriceInfo/**
 
-- 界面用马来文。首页：MPOB 油棕 FFB 价（6 区、和上一个交易日比较、走势图）+ FAMA 批发价（可搜索）。"Runcit" 页：PriceCatcher 按州的零售价。
+- 界面用马来文。首页：MPOB 油棕 FFB 价（6 区、和上一个交易日比较、走势图）+ FAMA 价格（Ladang/Borong/Runcit、可选州和县、按分类和名称搜索；点产品看三个层级的价格和各州/各县比较）。"Runcit" 页：PriceCatcher 按州的零售价。
 - 手机加到主屏幕：iPhone 用 Safari → 分享 → 「添加到主屏幕」；Android 用 Chrome → 菜单 → 「安装应用」。
 - 离线时显示上次打开时的价格。
 - 每天价格收集跑完后，`Publish PWA + API` workflow 会自动重建网站；改了 `web/` 也会自动发布。
@@ -44,9 +44,10 @@
 
 | 网址 | 内容 |
 |---|---|
-| `api/latest.json` | 一次拿全部：MPOB 最新一天 + FAMA 最新列表 + PriceCatcher 最新一天 |
+| `api/latest.json` | 一次拿全部：MPOB 最新一天 + FAMA 全国价格 + PriceCatcher 最新一天 |
 | `api/mpob.json` | 收集到的全部 MPOB 日期 |
-| `api/fama.json` | FAMA 最新一天 |
+| `api/fama.json` | FAMA 全国 + 各州价格（三个层级），加 `states`：每州有哪些县 |
+| `api/fama_daerah.json` | FAMA 各县价格（文件较大，需要时才读） |
 | `api/pricecatcher.json` | PriceCatcher 最新一天，全部州 |
 | `data/*.csv` | 原始 CSV（例如给 Google Sheets 用） |
 
@@ -55,7 +56,8 @@
 - 日期格式 `YYYY-MM-DD`；`generated_at` 是马来西亚时间。
 - `schema` 是格式版本号。以后如果有不兼容的改动，这个数字会加 1。
 - MPOB 的 `status`：`ok`、`NT`（没交易）、`PH`（公共假期）。
-- FAMA 的 `verified: false` 表示数据还没和 FAMA 网站核对。
+- FAMA 价格是最近 7 天（`window.from` 到 `window.to`）的平均，按 FAMA 记录笔数加权，和 FAMA 网站的 "Harga Purata" 算法一样（FAMA 网站默认是 30 天）。
+  每一项：`level`（Ladang/Borong/Runcit）、`state`、`district`（`null` = 全部）、`item`、`grade`、`unit`、`category`、`price`、`records`（几笔记录）、`latest_date`（窗口内最新一笔的日期）。
 - 每天大约 6:20pm 更新一次，app 不需要频繁请求。
 
 每个文件都有 `sources`，用来核对来源和判断数据新不新：
@@ -63,7 +65,7 @@
 | 字段 | 意思 |
 |---|---|
 | `url` | 官方来源网址（MPOB 是那份月度 PDF） |
-| `data_date` | 最新价格的日期。FAMA 没写价格日期，所以这里是抓取日期（`date_kind: "collected"`） |
+| `data_date` | 最新价格的日期 |
 | `max_age_days` | 跟今天（马来西亚时间）比，`data_date` 超过这么多天就算过期 |
 | `last_attempt` / `last_success` | 上次尝试抓取的时间 / 上次成功的时间 |
 | `ok` | 上次抓取是否成功；`false` 时价格可能是旧的 |
@@ -81,7 +83,7 @@
 
 ```json
 {
-  "schema": 1,
+  "schema": 2,
   "generated_at": "2026-11-17T18:16:02+08:00",
   "sources": {
     "mpob": {"name": "MPOB", "url": "https://price.mpob.gov.my/pdf/daily/ffb/2026-11-16",
@@ -95,8 +97,10 @@
     "previous_date": "2026-11-13",
     "change": {"north": 0.26, "south": 0.27, "central": 0.24, "east_coast": 0.26, "sabah": 0.23, "sarawak": 0.23}
   },
-  "fama": {"date": "2026-11-17", "verified": false,
-           "items": [{"item": "AYAM HIDUP", "grade": "F.A.Q", "unit": "Kilogram", "price": 6.88}]},
+  "fama": {"date": "2026-11-17", "window": {"from": "2026-11-11", "to": "2026-11-17", "days": 7},
+           "items": [{"level": "Ladang", "state": null, "district": null, "item": "PISANG BERANGAN",
+                      "grade": "F.A.Q", "unit": "Kilogram", "category": "Buah-Buahan",
+                      "price": 2.97, "records": 85, "latest_date": "2026-11-17"}]},
   "pricecatcher": {"date": "2026-11-16",
                    "items": [{"state": "Johor", "item": "BAYAM HIJAU", "unit": "1kg", "category": "SAYUR-SAYURAN",
                               "premises": 86, "median": 6.0, "min": 3.78, "max": 14.0}]}
@@ -124,8 +128,8 @@ const north = data.mpob.prices.north;
 
 - **MPOB**：看 `data/mpob_ffb_daily.csv`。NT = 没交易，PH = 公共假期，价格栏留空。
   日志里如果出现 `skipped unrecognised line`，表示 PDF 有些行格式不认得，把那几行发给 Claude 修。
-- **FAMA**：打开 `data/fama/今天日期.csv`，看列名和内容对不对。
-  不对的话：Actions 那次运行页面底部 **Artifacts → fama-raw** 下载原始 JSON，发给 Claude 修。
+- **FAMA**：日志里的 `CHECK Ladang/All/All` 几行，是用同样方法重算 FAMA 网站默认画面（Ladang、全部州、全部日期）的价格，可以和网站对比。
+  出问题时：日志会印出 FAMA 的数据结构和网页查询；原始数据在那次运行页面的 **Artifacts → fama-raw**。
   出现 `table is incomplete` 表示超过 30000 行被截断，数据已保存但不完整。
 - **PriceCatcher**：每月 1–3 号新月份文件可能还没发布，会显示 `not published yet`，不算失败。
 
