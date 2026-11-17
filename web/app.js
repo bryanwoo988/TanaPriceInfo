@@ -319,7 +319,76 @@ function fillStates() {
   if (saved && states.includes(saved)) sel.value = saved;
 }
 
+/* ---------- Info: version, changelog, collection history ---------- */
+const fullTime = (iso) => (iso ? `${fmtDate(iso)}, ${iso.slice(11, 16)}` : "—"); // stored in Malaysia time
+let latestGenerated = null;
+let infoLoaded = 0;
+
+function renderAppInfo() {
+  const rows = [
+    ["Versi", VERSION],
+    ["Dikeluarkan", RELEASED ? fullTime(RELEASED) : "—"],
+    ["Binaan", BUILD],
+    ["Data dikemas kini", fullTime(latestGenerated)],
+  ];
+  $("app-info").replaceChildren(...rows.flatMap(([k, v]) => [el("dt", {}, k), el("dd", {}, v)]));
+}
+
+function renderChangelog(log) {
+  $("changelog").replaceChildren(...log.map((v) =>
+    el("li", { class: v.version === VERSION ? "cur" : "" },
+      el("div", { class: "cl-head" },
+        el("b", { class: "ver" }, v.version),
+        v.version === VERSION ? el("span", { class: "pill ok" }, "Versi anda") : null,
+        el("span", { class: "small muted" }, v.released_at ? fullTime(v.released_at) : "Belum dikeluarkan")),
+      el("p", { class: "cl-title" }, v.title),
+      el("ul", {}, ...v.notes.map((n) => el("li", { class: "small" }, n))))));
+}
+
+function renderHistory(items) {
+  // One row per collection run (MPOB, FAMA and PriceCatcher run together), newest first.
+  const runs = new Map();
+  for (const h of items) {
+    const key = h.run || h.time.slice(0, 16);
+    const r = runs.get(key) || { time: h.time, trigger: h.trigger, src: {} };
+    if (h.time < r.time) r.time = h.time;
+    r.src[h.source] = h;
+    runs.set(key, r);
+  }
+  const list = [...runs.values()].sort((a, b) => (a.time < b.time ? 1 : -1));
+  const TRIG = { auto: "Auto", manual: "Manual", local: "Lain" };
+  const cell = (h) => !h ? el("td", { class: "na" }, "—")
+    : el("td", { class: h.ok ? "ok" : "bad", title: h.note || "" }, h.ok ? "✓" : "✗",
+      el("span", { class: "small muted" }, ` ${h.time.slice(11, 16)}`));
+  const head = el("tr", {}, ...["Masa", "Jenis", "MPOB", "FAMA", "PriceCatcher"].map((t) => el("th", {}, t)));
+  const body = list.flatMap((r) => {
+    const notes = Object.entries(r.src).filter(([, h]) => h.note).map(([k, h]) => `${SHORT[k] || k}: ${h.note}`);
+    return [
+      el("tr", {}, el("td", {}, fullTime(r.time)), el("td", {}, TRIG[r.trigger] || r.trigger || "—"),
+        cell(r.src.mpob), cell(r.src.fama), cell(r.src.pricecatcher)),
+      notes.length ? el("tr", { class: "note-row" }, el("td", { colspan: "5", class: "small muted" }, notes.join(" · "))) : null,
+    ];
+  });
+  $("hist").replaceChildren(el("thead", {}, head),
+    el("tbody", {}, ...(body.length ? body : [el("tr", {}, el("td", { colspan: "5", class: "muted" }, "Tiada rekod lagi."))])));
+}
+
+async function loadInfo() {
+  renderAppInfo();
+  if (Date.now() - infoLoaded < DATA_REFRESH_MS) return;
+  infoLoaded = Date.now();
+  try {
+    const [log, hist] = await Promise.all([getJSON("changelog.json"), getJSON("api/history.json")]);
+    renderChangelog(log);
+    renderHistory(hist.items || []);
+  } catch (e) {
+    infoLoaded = 0;
+    $("changelog").replaceChildren(el("li", { class: "muted small" }, "Gagal memuatkan. Cuba lagi nanti."));
+  }
+}
+
 /* ---------- tabs ---------- */
+const TABS = ["utama", "runcit", "info"];
 function showTab(name) {
   for (const b of document.querySelectorAll(".tabs button")) {
     const on = b.dataset.tab === name;
@@ -327,10 +396,13 @@ function showTab(name) {
     $(`tab-${b.dataset.tab}`).hidden = !on;
   }
   store("tab", name);
+  if (name === "info") loadInfo();
 }
 
 /* ---------- start ---------- */
 const BUILD = "__BUILD__"; // set by scripts/build_site.py, same value as in sw.js
+const VERSION = "__VERSION__";   // from web/changelog.json
+const RELEASED = "__RELEASED__"; // when this version reached main (from git), Malaysia time
 const DATA_REFRESH_MS = 10 * 60_000;
 let lastLoad = 0;
 
@@ -341,6 +413,8 @@ async function load() {
     const [latest, mpob, famaData] = await Promise.all(
       [getJSON("api/latest.json"), getJSON("api/mpob.json"), getJSON("api/fama.json")]);
     $("updated").textContent = `Laman dikemas kini ${fmtTime(latest.generated_at)}`;
+    latestGenerated = latest.generated_at;
+    if (!$("tab-info").hidden) { infoLoaded = 0; loadInfo(); }
     const sources = latest.sources || {};
     for (const k of ["mpob", "fama", "pricecatcher"]) renderSource(k, sources[k]);
     renderHealth(sources);
@@ -379,7 +453,7 @@ $("fama-detail").addEventListener("click", (ev) => {  // tap outside the sheet c
 $("pc-search").addEventListener("input", renderPc);
 $("pc-state").addEventListener("change", () => { store("state", $("pc-state").value); renderPc(); });
 for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => showTab(b.dataset.tab));
-showTab(store("tab") === "runcit" ? "runcit" : "utama");
+showTab(TABS.includes(store("tab")) ? store("tab") : "utama");
 
 const setOffline = () => { $("offline").hidden = navigator.onLine; };
 addEventListener("online", setOffline);
@@ -422,5 +496,5 @@ document.addEventListener("visibilitychange", () => {
 });
 addEventListener("online", () => { if (Date.now() - lastLoad > 60_000) load(); });
 
-$("build").textContent = `Versi ${BUILD}`;
+$("build").textContent = `Versi ${VERSION} · ${BUILD}`;
 load();

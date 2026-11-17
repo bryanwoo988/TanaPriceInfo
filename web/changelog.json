@@ -1,0 +1,59 @@
+[
+  {
+    "version": "1.4.0",
+    "title": "Versi, rekod kemas kini & sejarah kutipan",
+    "notes": [
+      "Tab Info baharu: nombor versi aplikasi dan tarikh dikeluarkan.",
+      "Rekod kemas kini: apa yang berubah dalam setiap versi.",
+      "Sejarah kutipan data: masa setiap kutipan dan sama ada MPOB, FAMA dan PriceCatcher berjaya."
+    ]
+  },
+  {
+    "version": "1.3.0",
+    "commit": "cff9146",
+    "title": "Kemas kini automatik",
+    "notes": [
+      "Versi baharu dipasang secara automatik apabila aplikasi dibuka atau kembali ke skrin.",
+      "Jika sedang melihat butiran barang, papar butang 'Versi baharu tersedia' dan bukannya muat semula serta-merta.",
+      "Harga dimuat semula apabila kembali ke aplikasi selepas lebih 10 minit."
+    ]
+  },
+  {
+    "version": "1.2.0",
+    "commit": "221496d",
+    "title": "FAMA mengikut peringkat, negeri & daerah",
+    "notes": [
+      "Harga FAMA dibetulkan: sebelum ini purata bercampur antara Ladang, Borong, Runcit dan semua lokasi.",
+      "Pilih Ladang / Borong / Runcit, Negeri, Daerah dan kategori.",
+      "Tekan barang untuk lihat rantaian harga (ladang → borong → runcit) dan perbandingan negeri atau daerah.",
+      "Harga ialah purata 7 hari, ditimbang mengikut bilangan rekod FAMA."
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "commit": "28c992c",
+    "title": "Sumber data & kesegaran",
+    "notes": [
+      "Pautan 'Semak di …' ke sumber rasmi setiap harga.",
+      "Label Terkini / Lewat / Gagal dikutip dan amaran di bahagian atas."
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "commit": "9e1315a",
+    "title": "Aplikasi web (PWA) & API",
+    "notes": [
+      "Harga BTS sawit MPOB dengan trend, harga pasaran FAMA dan harga runcit PriceCatcher.",
+      "Boleh dipasang di skrin utama dan berfungsi luar talian.",
+      "API JSON untuk aplikasi lain."
+    ]
+  },
+  {
+    "version": "0.1.0",
+    "commit": "4ab84e0",
+    "title": "Pengumpul harga harian",
+    "notes": [
+      "Kutipan automatik setiap hari jam 6:13 petang: MPOB, FAMA dan PriceCatcher."
+    ]
+  }
+]

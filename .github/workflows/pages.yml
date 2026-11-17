@@ -29,11 +29,12 @@ jobs:
     timeout-minutes: 10
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main   # newest data, including the commit the price run just pushed
+          fetch-depth: 0  # full history: release dates in the changelog come from git
 
       - uses: actions/setup-python@v5
         with:
@@ -48,5 +49,16 @@ jobs:
         with:
           path: site
 
+      # deploy-pages sometimes looks for the artifact before GitHub has registered
+      # it ("No artifacts named github-pages"); wait and try once more.
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - name: Wait before retry
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 20
+
+      - id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
