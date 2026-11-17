@@ -1,5 +1,20 @@
 [
   {
+    "version": "1.12.3",
+    "title": "Tarikh rekod terakhir lebih jelas",
+    "notes": [
+      "Tarikh dalam senarai FAMA kini berlabel 'terakhir', cth. '5 rekod · terakhir 14 Nov': tiada rekod FAMA selepas tarikh itu."
+    ],
+    "title_zh": "最后记录日期更清楚",
+    "notes_zh": [
+      "FAMA 列表的日期加上“最后记录”，例：“5 笔记录 · 最后记录 11月14日”，表示那天之后 FAMA 没有新记录。"
+    ],
+    "title_en": "Clearer last-record date",
+    "notes_en": [
+      "The date in the FAMA list is now labelled 'last', e.g. '5 records · last 14 Nov': no FAMA records after that date."
+    ]
+  },
+  {
     "version": "1.12.2",
     "title": "Harga FAMA sejajar",
     "notes": [

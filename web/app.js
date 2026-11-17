@@ -371,7 +371,7 @@ async function renderFama() {
       // the weekly change goes on the second line with the record count.
       el("div", { class: "pr" }, el("b", {}, `RM ${rm(e.price)}`),
         el("span", { class: "meta" }, changeTag(e),
-          t("records", { n: e.records }) + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : ""))),
+          t("records", { n: e.records }) + (w && e.latest_date < w.to ? ` · ${t("last.record", { d: shortDate(e.latest_date) })}` : ""))),
       ))));
   if (!rows.length) {
     list.append(el("li", {}, el("span", { class: "muted" },
