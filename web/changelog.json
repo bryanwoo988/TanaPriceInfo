@@ -1,5 +1,26 @@
 [
   {
+    "version": "1.12.1",
+    "title": "Tanda 'rekod sedikit' dibuang",
+    "notes": [
+      "Tanda 'rekod sedikit' dibuang kerana bilangan rekod sudah dipaparkan.",
+      "Senarai perbandingan negeri / daerah kini menunjukkan bilangan rekod di bawah harga.",
+      "Titik kosong ○ dalam trend dan syarat ▲▼ (sekurang-kurangnya 3 rekod setiap minggu) kekal."
+    ],
+    "title_zh": "移除“记录少”标签",
+    "notes_zh": [
+      "已显示记录笔数，所以移除“记录少”标签。",
+      "各州 / 各县比较列表在价格下方显示记录笔数。",
+      "走势图的空心点 ○ 和 ▲▼ 的条件（每周至少 3 笔记录）保持不变。"
+    ],
+    "title_en": "'Few records' label removed",
+    "notes_en": [
+      "The 'few records' label is removed because the number of records is already shown.",
+      "The state / district comparison list now shows the number of records under each price.",
+      "Hollow points ○ in the trend and the ▲▼ rule (at least 3 records each week) stay."
+    ]
+  },
+  {
     "version": "1.12.0",
     "title": "▲▼ lebih tepat; F.A.Q disembunyikan",
     "notes": [

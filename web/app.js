@@ -292,7 +292,6 @@ function ensureTrend() {
 }
 
 const FEW = () => fama?.window?.few_records_below || 3;
-const fewTag = (x) => (x && x.records < FEW() ? el("em", { class: "few", title: t("few.title") }, t("few")) : null);
 function changeTag(x) {
   const c = x?.change_pct;
   if (c == null || Math.abs(c) < 0.5) return null;
@@ -370,7 +369,7 @@ async function renderFama() {
         el("span", {}, gradeUnit(e))),
       el("div", { class: "pr" }, el("b", {}, `RM ${rm(e.price)}`), changeTag(e),
         el("span", {}, t("records", { n: e.records }) + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : "")),
-        fewTag(e))))));
+      )))));
   if (!rows.length) {
     list.append(el("li", {}, el("span", { class: "muted" },
       all.length ? (fs.cat === "fav" && !favs.size ? t("fav.none") : t("no.match")) : t("fama.none", { lvl: lvlName(fs.level), loc: locLabel(fs.state, fs.district) }))));
@@ -381,7 +380,7 @@ async function renderFama() {
 function famaShareText(e, chain) {
   const w = fama.window;
   const lines = chain.filter(([, x]) => x).map(([l, x]) =>
-    `${lvlName(l)}: RM ${rm(x.price)}${x.records < FEW() ? t("share.few") : ""}`);
+    `${lvlName(l)}: RM ${rm(x.price)}`);
   return `${e.item} (${e.grade && e.grade !== FAQ ? `${e.grade}, ` : ""}RM/${e.unit})\n${locLabel(fs.state, fs.district)}\n${lines.join("\n")}\n` +
     (w ? `${t("share.window", { n: w.days, from: shortDate(w.from), to: fmtDate(w.to) })}\n` : "") +
     `\nHarga Harian: ${APP_URL}`;
@@ -401,7 +400,7 @@ async function openFamaDetail(e) {
       el("span", { class: "small muted" }, lvlName(l)),
       el("b", {}, x ? rm(x.price) : "—"),
       el("span", { class: "small muted" }, x ? t("records", { n: x.records }) : t("nodata.short")),
-      changeTag(x), fewTag(x)),
+      changeTag(x)),
   ]));
 
   // 2. Same level, compare places: states (or districts of the chosen state).
@@ -416,10 +415,10 @@ async function openFamaDetail(e) {
     const cur = fs.state ? x.district === fs.district : false;
     const tag = peers.length > 1 && x === lo ? t("lowest") : peers.length > 1 && x === hi ? t("highest") : "";
     return el("li", { class: cur ? "cur" : "" },
-      el("span", { class: "pname" }, tc(name), tag ? el("em", { class: x === lo ? "lo" : "hi" }, tag) : null,
-        x.records < FEW() ? el("em", { class: "few", title: t("few.title") }, t("few.short")) : null),
+      el("span", { class: "pname" }, tc(name), tag ? el("em", { class: x === lo ? "lo" : "hi" }, tag) : null),
       el("span", { class: "bar" }, el("i", { style: `width:${Math.round((x.price / max) * 100)}%` })),
-      el("b", {}, rm(x.price)));
+      // Record count under the price: this list shows no other hint of how solid each average is.
+      el("span", { class: "pval" }, el("b", {}, rm(x.price)), el("small", {}, t("records.short", { n: x.records }))));
   }));
 
   // 3. Trend: daily average, last 30 days (state level when a district is chosen).

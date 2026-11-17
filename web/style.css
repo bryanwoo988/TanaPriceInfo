@@ -306,18 +306,12 @@ select:disabled { opacity: .55; }
 }
 .toast[hidden] { display: none; }
 .list .pr .chg { display: inline-block; margin-left: 6px; font-size: 12px; }
-em.few {
-  display: inline-block; font-style: normal; font-size: 11px; font-weight: 600; white-space: nowrap;
-  color: var(--warn-ink); background: var(--warn-bg); border-radius: 999px; padding: 0 6px; margin-top: 2px;
-}
-.peers em.few { margin-left: 6px; }
-.star.on { color: #d49b00; }
+.peers .star.on { color: #d49b00; }
 .head-btns { display: flex; gap: 8px; flex: none; }
 .star-btn { font-size: 20px; }
 .star-btn.on { color: #d49b00; }
 .chain .lvl .chg { display: block; margin: 2px 0 0; font-size: 12px; }
-.chain .lvl em.few { margin-top: 4px; }
-.trend .chart { width: 100%; height: 110px; display: block; }
+.chain .lvl .trend .chart { width: 100%; height: 110px; display: block; }
 .trend .chart .ln { fill: none; stroke: var(--brand); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .trend .chart .gd { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .trend .chart .pt { fill: var(--brand); opacity: .55; }
@@ -356,3 +350,5 @@ em.few {
   font-style: normal; font-size: 12px; font-weight: 700; color: var(--brand);
   background: var(--ok-bg); border-radius: 999px; padding: 2px 10px;
 }
+.peers .pval { text-align: right; line-height: 1.15; }
+.peers .pval small { display: block; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
