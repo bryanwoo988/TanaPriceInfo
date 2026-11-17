@@ -2,7 +2,10 @@
 
 const REGIONS = ["north", "south", "central", "east_coast", "sabah", "sarawak"];
 const regionName = (k) => t(`reg.${k}`);
-const MONTHS = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
+const MONTHS = {
+  ms: ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"],
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+};
 const CHART_DAYS = 30;
 const LIST_LIMIT = 300;
 
@@ -27,7 +30,8 @@ function fmtDate(iso, withYear = true) {
   if (!iso) return "—";
   const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
   if (LANG === "zh") return `${withYear ? `${y}年` : ""}${m}月${d}日`;
-  return withYear ? `${d} ${MONTHS[m - 1]} ${y}` : `${d} ${MONTHS[m - 1]}`;
+  const mon = (MONTHS[LANG] || MONTHS.ms)[m - 1];
+  return withYear ? `${d} ${mon} ${y}` : `${d} ${mon}`;
 }
 
 function el(tag, attrs = {}, ...kids) {
@@ -522,8 +526,8 @@ function renderChangelog(log) {
         el("b", { class: "ver" }, v.version),
         v.version === VERSION ? el("span", { class: "pill ok" }, t("your.ver")) : null,
         el("span", { class: "small muted" }, v.released_at ? fullTime(v.released_at) : t("unreleased"))),
-      el("p", { class: "cl-title" }, (LANG === "zh" && v.title_zh) || v.title),
-      el("ul", {}, ...((LANG === "zh" && v.notes_zh) || v.notes).map((n) => el("li", { class: "small" }, n))))));
+      el("p", { class: "cl-title" }, v[`title_${LANG}`] || v.title),
+      el("ul", {}, ...(v[`notes_${LANG}`] || v.notes).map((n) => el("li", { class: "small" }, n))))));
 }
 
 function renderHistory(items) {
@@ -543,7 +547,7 @@ function renderHistory(items) {
       el("b", {}, h.ok ? "✓" : "✗"), el("span", { class: "t" }, h.time.slice(11, 16)));
   const head = el("tr", {}, ...[t("hist.time"), "MPOB", "FAMA", "KPDN"].map((h) => el("th", {}, h)));
   const body = list.flatMap((r) => {
-    const note = (h) => (LANG === "zh" && h.note_zh) || h.note;
+    const note = (h) => h[`note_${LANG}`] || h.note;
     const notes = Object.entries(r.src).filter(([, h]) => h.note).map(([k, h]) => `${SHORT[k] || k}: ${note(h)}`);
     return [
       el("tr", {},
@@ -859,11 +863,20 @@ function rerenderAll() {
   if ($("install-guide").open) renderInstallGuide();
   if ($("fama-detail").open) $("fama-detail").close();
 }
-$("lang-btn").addEventListener("click", () => {
-  LANG = LANG === "zh" ? "ms" : "zh";
+// Language menu: a native <select> under a short label (BM / 中文 / EN).
+function renderLangPicker() {
+  $("lang-label").textContent = LANG_LABELS[LANG];
+  const sel = $("lang-select");
+  if (!sel.options.length) sel.replaceChildren(...LANGS.map((l) => el("option", { value: l, lang: l === "zh" ? "zh-Hans" : l }, LANG_NAMES[l])));
+  sel.value = LANG;
+}
+$("lang-select").addEventListener("change", () => {
+  LANG = $("lang-select").value;
   store("lang", LANG);
+  renderLangPicker();
   rerenderAll();
 });
+renderLangPicker();
 
 applyStaticText();
 $("build").textContent = t("build", { v: VERSION, b: BUILD });

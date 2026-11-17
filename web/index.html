@@ -19,7 +19,10 @@
     <div class="top-row">
       <h1>Harga Harian</h1>
       <div class="top-btns">
-      <button type="button" id="lang-btn" class="lang-btn" data-i18n="lang.switch" data-i18n-attr="aria-label:lang.aria">中文</button>
+      <div class="lang-pick">
+        <span id="lang-label" class="lang-btn" aria-hidden="true">BM</span>
+        <select id="lang-select" aria-label="Bahasa / 语言 / Language" data-i18n-attr="aria-label:lang.aria"></select>
+      </div>
       <button type="button" id="info-btn" class="icon-btn" data-i18n-attr="aria-label:info.aria" aria-label="Info: versi, rekod kemas kini, sejarah kutipan" aria-pressed="false">
         <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 11v6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="7.3" r="1.5" fill="currentColor"/></svg>
       </button>

@@ -1,20 +1,25 @@
 "use strict";
-// Interface languages: Malay (ms) and Simplified Chinese (zh).
+// Interface languages: Malay (ms), Simplified Chinese (zh) and English (en).
 // Commodity names, states, districts and agency names are NOT translated.
 // t("key", { var: value }) fills {var} placeholders; missing keys fall back to Malay.
 
-const LANGS = ["ms", "zh"];
+const LANGS = ["ms", "zh", "en"];
+const LANG_LABELS = { ms: "BM", zh: "中文", en: "EN" };         // shown on the header button
+const LANG_NAMES = { ms: "Bahasa Melayu", zh: "中文", en: "English" }; // shown in the menu
 let LANG = (() => {
   try {
     const saved = localStorage.getItem("lang");
     if (LANGS.includes(saved)) return saved;
   } catch (_) { /* private mode */ }
-  return /^zh/i.test(navigator.language || "") ? "zh" : "ms";
+  const nav = (navigator.language || "").toLowerCase();
+  if (nav.startsWith("zh")) return "zh";
+  if (nav.startsWith("en")) return "en";
+  return "ms"; // Malay for Malay and every other phone language
 })();
 
 const STR = {
   ms: {
-    "lang.switch": "中文", "lang.aria": "Tukar bahasa ke Bahasa Cina / 切换到中文",
+    "lang.aria": "Bahasa / 语言 / Language",
     "info.aria": "Info: versi, rekod kemas kini, sejarah kutipan",
     "loading": "Memuatkan…",
     "updated": "Laman dikemas kini {t}",
@@ -125,7 +130,7 @@ const STR = {
   },
 
   zh: {
-    "lang.switch": "BM", "lang.aria": "切换到马来文 / Tukar ke Bahasa Melayu",
+    "lang.aria": "语言 / Bahasa / Language",
     "info.aria": "资讯：版本、更新记录、收集记录",
     "loading": "加载中…",
     "updated": "页面更新于 {t}",
@@ -234,6 +239,117 @@ const STR = {
     "ig.and3": "点击<b>安装</b>。",
     "ig.desktop": "请在手机上打开此网页并添加到主屏幕。在电脑上，Chrome 或 Edge 的网址栏会显示安装按钮。",
   },
+
+  en: {
+    "lang.aria": "Language / Bahasa / 语言",
+    "info.aria": "Info: version, update history, collection history",
+    "loading": "Loading…",
+    "updated": "Page updated {t}",
+    "load.fail": "Could not load data. Please try again later.",
+    "update.banner": "New version available — tap to update",
+    "offline": "Offline — showing the last saved data.",
+    "build": "Version {v} · {b}",
+
+    "fresh.none": "No data", "fresh.failed": "Collection failed", "fresh.late": "{n} days late", "fresh.ok": "Up to date",
+    "src.check": "Check at {s} ↗",
+    "src.price": "Price of {d}", "src.today": " (today)", "src.ago": " ({n} days ago)", "src.collected": " · collected {t}",
+    "src.failed": "The last collection failed ({t}). Prices below may be old.",
+    "no.data": "No data.",
+
+    "mpob.title": "Oil Palm FFB Price (MPOB)",
+    "mpob.change": "Change since {d}",
+    "mpob.trend": "{r} trend (last {n} trading days)",
+    "mpob.trend.aria": "{r} price trend, latest RM {v}",
+    "mpob.share": "MPOB oil palm FFB prices (RM / 1% OER), {d}",
+    "share": "Share",
+    "reg.north": "North", "reg.south": "South", "reg.central": "Central",
+    "reg.east_coast": "East Coast", "reg.sabah": "Sabah", "reg.sarawak": "Sarawak",
+
+    "calc.title": "Calculate your FFB price",
+    "calc.intro": "The MPOB price is per 1% oil extraction rate (OER). Enter your OER and the weight of your fruit.",
+    "calc.region": "Region", "calc.oer": "OER (%)", "calc.tons": "Weight (tonnes)",
+    "calc.note": "Estimate based on the MPOB mill-gate reference price. The actual price depends on the mill, fruit grade, deductions and transport cost.",
+    "calc.noprice": "No MPOB price.", "calc.noregion": "No price for this region.",
+    "calc.badoer": "Enter an OER between 10% and 30% (usually 18–23%).",
+    "calc.perton": " / tonne",
+    "calc.formula": "{p} × {o}% OER · {r}, price of {d}",
+    "calc.total": "Total for {n} t: ",
+
+    "toast.copied": "Copied. Paste it in WhatsApp or a message.",
+    "toast.noshare": "Sharing is not available in this browser.",
+
+    "fama.title": "Market Prices (FAMA)",
+    "fama.levels": "Price level", "state": "State", "district": "District", "category": "Category",
+    "lvl.Ladang": "Farm", "lvl.Borong": "Wholesale", "lvl.Runcit": "Retail",
+    "cat.all": "All", "cat.fav": "★ Favourites", "cat.veg": "Vegetables", "cat.fruit": "Fruits", "cat.livestock": "Livestock",
+    "fama.search": "Search (Malay names, e.g. ayam)",
+    "all.states": "All states", "all.districts": "All districts", "all.malaysia": "All Malaysia",
+    "few": "few records", "few.short": "few", "few.title": "Few records: the average is less reliable",
+    "change.title": "Compared with the previous week",
+    "dist.loading": "Loading district prices…", "dist.fail": "Could not load district prices.",
+    "fama.window": "Prices are {n}-day averages ({from} – {to}), weighted by the number of FAMA records. ▲▼ = compared with the previous week. \"Few records\" = fewer than {few} records, so the average is less reliable. Tap an item to compare levels, places and the trend.",
+    "fav": "Favourite",
+    "records": "{n} records",
+    "fav.none": "No favourites yet. Open an item and tap ☆ to save it.",
+    "no.match": "No matches.",
+    "fama.none": "No {lvl} prices for {loc} in this period.",
+    "fama.count": "{n} items · {lvl} · {loc}",
+    "share.few": " (few records)",
+    "share.window": "{n}-day average {from} – {to}, FAMA",
+    "nodata.short": "no data",
+    "lowest": "Lowest", "highest": "Highest",
+    "trend.loading": "Loading trend…",
+    "fav.remove": "Remove from favourites", "fav.add": "Save as favourite",
+    "fav.added": "Saved to Favourites.", "fav.removed": "Removed from Favourites.",
+    "close": "Close",
+    "chain": "Price chain (farm → wholesale → retail)",
+    "markup": "The retail price is {p}% higher than the farm price.",
+    "trend.title": "30-day trend ({lvl}, {loc})",
+    "by.district": "By district in {st} ({lvl})", "by.state": "By state ({lvl})",
+    "no.peers": "No data for other places.",
+    "share.price": "Share price",
+    "window.short": "{n}-day average ({from} – {to}). ",
+    "trend.aria": "{item} price trend, {n} days with records",
+    "trend.days": "Daily average · {d} of {n} days have records.",
+    "trend.weak": " Hollow point ○ = fewer than {few} records that day (less reliable).",
+    "trend.few": "Not enough records for a trend.", "trend.fail": "Could not load the trend.",
+
+    "kpdn.title": "Retail Prices (KPDN PriceCatcher)",
+    "kpdn.search": "Search (Malay names, e.g. bayam)",
+    "kpdn.premises": "{u} · {n} shops",
+    "kpdn.note": "Median price across the reporting shops.",
+
+    "share.title": "Share the app",
+    "share.intro": "Scan the QR code with a phone camera to open Harga Harian. Tap the code to enlarge it.",
+    "qr.enlarge": "Enlarge QR code", "qr.alt": "QR code to {u}", "qr.big": "Large QR code",
+    "copy.link": "Copy link",
+    "install.help": "How to add to the home screen",
+    "share.app": "Harga Harian: MPOB oil palm FFB prices, FAMA market prices and KPDN retail prices. Free, and can be added to your phone's home screen.",
+    "link.copied": "Link copied.", "link.press": "Press and hold the link to copy it.",
+
+    "app": "App", "ver": "Version", "released": "Released", "buildid": "Build", "data.updated": "Data updated",
+    "changelog": "Update history", "your.ver": "Your version", "unreleased": "Not released yet",
+    "history": "Data collection history",
+    "history.intro": "Every collection (automatic daily at 6:13 pm, or manual) in the last 90 days. All times are Malaysia time.",
+    "hist.time": "Time", "trig.auto": "Auto", "trig.manual": "Manual", "trig.local": "Other",
+    "hist.none": "No records yet.", "info.fail": "Could not load. Please try again later.",
+
+    "ig.title": "Add to home screen", "ig.sub": "Free · no ads · no sign-up", "ig.later": "Later",
+    "ig.inapp": "This in-app browser cannot install Harga Harian. Open it in a normal browser first:",
+    "ig.inapp1": "Tap the menu {MENU} or <b>⋯</b> at the top.",
+    "ig.inapp2": "Choose <b>Open in {B}</b> (or <i>Open in browser</i>).",
+    "ig.inapp3": "Then follow the install guide that appears.",
+    "ig.onetap": "Install Harga Harian on your home screen to open it like a normal app, even without internet.",
+    "ig.install": "Install now",
+    "ig.ios": "Add Harga Harian to your home screen to open it like a normal app, even without internet.",
+    "ig.ios1": "In <b>Safari</b>, tap the Share button {SHARE} (at the bottom, or in the <b>⋯</b> menu).",
+    "ig.ios2": "Scroll down and choose <b>Add to Home Screen</b> {ADD}.",
+    "ig.ios3": "Tap <b>Add</b> at the top right.",
+    "ig.and1": "In <b>Chrome</b>, tap the menu {MENU} at the top right.",
+    "ig.and2": "Choose <b>Install app</b> or <b>Add to Home screen</b>.",
+    "ig.and3": "Tap <b>Install</b>.",
+    "ig.desktop": "Open this page on your phone and add it to the home screen. On a computer, Chrome or Edge shows an Install button in the address bar.",
+  },
 };
 
 function t(key, vars = {}) {
@@ -243,7 +359,7 @@ function t(key, vars = {}) {
 
 // Static page text: data-i18n="key" sets the text; data-i18n-attr="placeholder:key;aria-label:key".
 function applyStaticText() {
-  document.documentElement.lang = LANG === "zh" ? "zh-Hans" : "ms";
+  document.documentElement.lang = { ms: "ms", zh: "zh-Hans", en: "en" }[LANG];
   for (const n of document.querySelectorAll("[data-i18n]")) n.textContent = t(n.dataset.i18n);
   for (const n of document.querySelectorAll("[data-i18n-attr]")) {
     for (const pair of n.dataset.i18nAttr.split(";")) {

@@ -1,5 +1,26 @@
 [
   {
+    "version": "1.10.0",
+    "title": "Bahasa Inggeris: tiga bahasa",
+    "notes": [
+      "Menu bahasa di kanan atas: BM / 中文 / EN.",
+      "Nama barang FAMA dan KPDN kekal seperti asal dalam semua bahasa.",
+      "Kali pertama ikut bahasa telefon (Cina → 中文, Inggeris → EN, lain-lain → BM)."
+    ],
+    "title_zh": "英文：三种语言",
+    "notes_zh": [
+      "右上角语言选单：BM / 中文 / EN。",
+      "在所有语言中，FAMA 和 KPDN 的商品名称保持原文。",
+      "第一次打开时按手机语言（中文 → 中文，英文 → EN，其他 → BM）。"
+    ],
+    "title_en": "English: three languages",
+    "notes_en": [
+      "Language menu at the top right: BM / 中文 / EN.",
+      "FAMA and KPDN item names stay as they are in every language.",
+      "The first time follows the phone language (Chinese → 中文, English → EN, others → BM)."
+    ]
+  },
+  {
     "version": "1.9.0",
     "title": "Bahasa Cina / Bahasa Melayu",
     "notes": [
@@ -12,6 +33,12 @@
       "右上角新增语言切换按钮：中文 / BM。",
       "FAMA、KPDN 的商品名称以及州名、县名保持原文。",
       "会记住你的选择；第一次打开时按手机语言显示。"
+    ],
+    "title_en": "Chinese / Malay interface",
+    "notes_en": [
+      "Language button at the top right: 中文 / BM.",
+      "FAMA and KPDN item names, states and districts stay as they are.",
+      "Your choice is remembered; the first time follows the phone language."
     ]
   },
   {
@@ -31,6 +58,14 @@
       "收藏：在商品点 ☆，收藏的商品排在最前，可用“★ 收藏”筛选。",
       "把单一商品的价格（或当天 MPOB 价格）分享到 WhatsApp。",
       "平均价来自少于 3 笔 FAMA 记录时，标示“记录少”。"
+    ],
+    "title_en": "FFB calculator, trend, favourites & sharing prices",
+    "notes_en": [
+      "MPOB: calculate your FFB price per tonne and total by weight (OER × MPOB price).",
+      "FAMA: 30-day trend in the item details, and ▲▼ compared with the previous week.",
+      "Favourites: tap ☆ on an item; favourites go to the top and have a '★ Favourites' filter.",
+      "Share the price of one item (or today's MPOB prices) to WhatsApp.",
+      "'Few records' label when an average comes from fewer than 3 FAMA records."
     ]
   },
   {
@@ -50,6 +85,14 @@
       "在 Facebook、Instagram 等应用内打开时：先教用 Safari / Chrome 打开。",
       "可在资讯 → “如何添加到主屏幕”再次打开。",
       "Android 主屏幕名称改为 “Harga Harian”。"
+    ],
+    "title_en": "Add-to-home-screen guide",
+    "notes_en": [
+      "The first time the app is opened in a browser, a guide shows how to add it to the home screen, by phone type (iPhone, Android).",
+      "On Android Chrome: a direct 'Install now' button.",
+      "When opened inside apps like Facebook or Instagram: a guide to open it in Safari / Chrome first.",
+      "The guide can be reopened in Info → 'How to add to the home screen'.",
+      "The Android home-screen name is now 'Harga Harian'."
     ]
   },
   {
@@ -63,6 +106,11 @@
     "notes_zh": [
       "资讯页（右上角图标）新增“分享应用”：二维码、分享和复制链接按钮。",
       "点击二维码可放大，方便给别人扫描。"
+    ],
+    "title_en": "Share the app with a QR code",
+    "notes_en": [
+      "'Share the app' card in Info (top-right icon): QR code, Share and Copy link buttons.",
+      "Tap the QR code to enlarge it and show it to others to scan."
     ]
   },
   {
@@ -80,6 +128,13 @@
       "打开 FAMA 就看到价格，不用往下滑。",
       "资讯（版本、更新记录、收集记录）移到右上角图标。",
       "来源延迟或收集失败时，标签旁显示红点。"
+    ],
+    "title_en": "New navigation: MPOB, FAMA and KPDN tabs",
+    "notes_en": [
+      "Each source has its own tab at the bottom: MPOB, FAMA and KPDN (previously Utama and Runcit).",
+      "FAMA prices are visible without scrolling.",
+      "Info (version, update history, collection history) is now the icon at the top right.",
+      "Red dot on a tab when that source's data is late or failed."
     ]
   },
   {
@@ -95,6 +150,12 @@
       "新增资讯页：应用版本号和发布时间。",
       "更新记录：每个版本改了什么。",
       "数据收集记录：每次收集的时间，以及 MPOB、FAMA、PriceCatcher 是否成功。"
+    ],
+    "title_en": "Version, update history & collection history",
+    "notes_en": [
+      "New Info tab: app version number and release date.",
+      "Update history: what changed in each version.",
+      "Data collection history: the time of each collection and whether MPOB, FAMA and PriceCatcher succeeded."
     ]
   },
   {
@@ -111,6 +172,12 @@
       "打开应用或回到应用时，自动安装新版本。",
       "正在看商品详情时，改为显示“有新版本”按钮，不会立即重新加载。",
       "离开超过 10 分钟后回到应用，会重新加载价格。"
+    ],
+    "title_en": "Automatic updates",
+    "notes_en": [
+      "A new version is installed automatically when the app is opened or brought back to the screen.",
+      "While viewing item details, a 'New version available' button is shown instead of reloading at once.",
+      "Prices reload when returning to the app after more than 10 minutes."
     ]
   },
   {
@@ -129,6 +196,13 @@
       "可选农场 / 批发 / 零售、州、县和类别。",
       "点击商品可看价格链（农场 → 批发 → 零售）和各州或各县比较。",
       "价格为 7 天平均，按 FAMA 记录笔数加权。"
+    ],
+    "title_en": "FAMA by level, state & district",
+    "notes_en": [
+      "FAMA prices fixed: they were previously an average mixing Farm, Wholesale, Retail and all places.",
+      "Choose Farm / Wholesale / Retail, State, District and category.",
+      "Tap an item to see the price chain (farm → wholesale → retail) and compare states or districts.",
+      "Prices are 7-day averages, weighted by the number of FAMA records."
     ]
   },
   {
@@ -143,6 +217,11 @@
     "notes_zh": [
       "每个价格都有“到…核对”链接，连到官方来源。",
       "显示最新 / 延迟 / 收集失败标签，顶部有提醒。"
+    ],
+    "title_en": "Data sources & freshness",
+    "notes_en": [
+      "'Check at …' links to the official source of every price.",
+      "Up to date / Late / Collection failed labels and a warning at the top."
     ]
   },
   {
@@ -159,6 +238,12 @@
       "MPOB 油棕鲜果串价格及走势、FAMA 市场价格、PriceCatcher 零售价格。",
       "可添加到主屏幕，离线也能用。",
       "提供 JSON API 给其他应用使用。"
+    ],
+    "title_en": "Web app (PWA) & API",
+    "notes_en": [
+      "MPOB oil palm FFB prices with trend, FAMA market prices and PriceCatcher retail prices.",
+      "Can be added to the home screen and works offline.",
+      "JSON API for other apps."
     ]
   },
   {
@@ -171,6 +256,10 @@
     "title_zh": "每日价格收集",
     "notes_zh": [
       "每天下午 6:13 自动收集：MPOB、FAMA 和 PriceCatcher。"
+    ],
+    "title_en": "Daily price collector",
+    "notes_en": [
+      "Automatic collection every day at 6:13 pm: MPOB, FAMA and PriceCatcher."
     ]
   }
 ]
