@@ -147,3 +147,55 @@ input[type="search"], select {
 .pill.warn, .pill.bad { background: var(--warn-bg); color: var(--warn-ink); }
 .pill.bad { color: var(--down); }
 .warn-text { color: var(--down); font-weight: 600; }
+
+/* ---------- FAMA filters ---------- */
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--field); border-radius: 12px; padding: 4px; margin: 8px 0; }
+.seg button {
+  font: inherit; font-weight: 600; color: var(--muted); background: none;
+  border: 0; border-radius: 9px; padding: 9px 0; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--card); color: var(--brand); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fld { display: block; min-width: 0; }
+.fld select { margin: 2px 0 6px; }
+select:disabled { opacity: .55; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 2px 0 2px; }
+.chips button {
+  font: inherit; font-size: 14px; color: var(--text); background: var(--field);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer;
+}
+.chips button[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.list .rowbtn {
+  display: flex; justify-content: space-between; gap: 12px; width: 100%;
+  font: inherit; color: inherit; text-align: left; background: none; border: 0; padding: 0; cursor: pointer;
+}
+.list li:has(.rowbtn):active { background: var(--field); }
+
+/* ---------- detail sheet ---------- */
+.sheet {
+  border: 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  width: 100%; max-width: 640px; max-height: 88vh; overflow-y: auto;
+  margin: auto auto 0; border-radius: 18px 18px 0 0;
+  background: var(--card); color: var(--text);
+}
+.sheet::backdrop { background: rgba(0,0,0,.45); }
+.sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sheet h3 { margin: 0; font-size: 18px; }
+.sheet h4 { margin: 16px 0 8px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+.close { font: inherit; font-size: 18px; background: var(--field); color: var(--text); border: 0; border-radius: 999px; width: 36px; height: 36px; cursor: pointer; flex: none; }
+.chain { display: flex; align-items: stretch; gap: 4px; }
+.chain .lvl { flex: 1; background: var(--field); border-radius: 10px; padding: 8px; text-align: center; border: 2px solid transparent; min-width: 0; }
+.chain .lvl.cur { border-color: var(--brand); }
+.chain .lvl b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.chain .arrow { align-self: center; color: var(--muted); }
+.peers { list-style: none; margin: 0; padding: 0; }
+.peers li { display: grid; grid-template-columns: 42% 1fr auto; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.peers li.cur { font-weight: 700; }
+.peers .pname { font-size: 14px; overflow-wrap: anywhere; }
+.peers em { font-style: normal; font-size: 11px; font-weight: 700; margin-left: 6px; padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
+.peers em.lo { background: var(--ok-bg); color: var(--up); }
+.peers em.hi { background: var(--warn-bg); color: var(--down); }
+.peers .bar { height: 8px; background: var(--field); border-radius: 4px; overflow: hidden; }
+.peers .bar i { display: block; height: 100%; background: var(--brand); opacity: .75; }
+.peers b { font-variant-numeric: tabular-nums; }
+.sheet a { color: var(--brand); font-weight: 600; }

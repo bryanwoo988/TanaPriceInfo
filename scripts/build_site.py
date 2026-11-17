@@ -4,17 +4,17 @@ Output goes to site/, which GitHub Pages serves at
   https://<user>.github.io/<repo>/
 
 API (all JSON, UTF-8, CORS open on GitHub Pages):
-  api/latest.json        newest MPOB day + FAMA list + PriceCatcher day, in one file
+  api/latest.json        newest MPOB day + FAMA national prices + PriceCatcher day
   api/mpob.json          every MPOB day collected
-  api/fama.json          newest FAMA day
+  api/fama.json          FAMA 7-day average per level, national + per state
+  api/fama_daerah.json   FAMA 7-day average per level and district
   api/pricecatcher.json  newest PriceCatcher day, every state
 Prices are numbers (RM) or null when missing.
 
 Every file has a "sources" block for checking and freshness:
   url           official page to check the price against
-  data_date     date of the newest price (FAMA: date it was collected,
-                because FAMA does not state a date)
-  date_kind     "price" or "collected"
+  data_date     date of the newest price
+  date_kind     "price"
   max_age_days  data older than this (vs today, Malaysia time) is late
   last_attempt / last_success / ok   from the daily collector run
 
@@ -33,7 +33,7 @@ DATA = ROOT / "data"
 WEB = ROOT / "web"
 OUT = ROOT / "site"
 MYT = timezone(timedelta(hours=8))
-SCHEMA = 1
+SCHEMA = 2  # 2: FAMA entries per level/state/district (7-day average)
 REGIONS = ["north", "south", "central", "east_coast", "sabah", "sarawak"]
 
 # Where each price comes from, and how old it may get before we call it late.
@@ -48,11 +48,11 @@ SOURCES = {
     },
     "fama": {
         "name": "FAMA",
-        "title": "Harga Pasaran Terkini",
+        "title": "Panduan Harga Harian (Ladang, Borong, Runcit)",
         "url": "https://www.fama.gov.my/harga-pasaran-terkini",
         "home": "https://www.fama.gov.my/",
-        "date_kind": "collected",
-        "max_age_days": 1,
+        "date_kind": "price",
+        "max_age_days": 2,
     },
     "pricecatcher": {
         "name": "PriceCatcher (KPDN, data.gov.my)",
@@ -117,29 +117,60 @@ def mpob_latest(m: dict) -> dict | None:
     }
 
 
-def fama() -> dict:
-    rows = read_csv(DATA / "fama_prices.csv")
+FAMA_WINDOW_DAYS = 7
+FAMA_LEVELS = ["Ladang", "Borong", "Runcit"]
+
+
+def fama() -> tuple[dict, dict]:
+    """FAMA prices averaged over the last FAMA_WINDOW_DAYS days of data.
+
+    The CSV holds one average per date/level/state/district/commodity plus `n`,
+    the number of price records behind it, so averages are rebuilt exactly as
+    FAMA's page does (weighted by n). Returns (national + state, district).
+    """
+    rows = [r for f in sorted((DATA / "fama").glob("[0-9][0-9][0-9][0-9]-[0-9][0-9].csv"))
+            for r in read_csv(f)]
+    empty = {"source": "FAMA", "date": None, "window": None, "items": []}
     if not rows:
-        return {"source": "FAMA", "date": None, "verified": False, "items": []}
-    date = max(r["scraped_date"] for r in rows)
-    items = [
-        {
-            "item": r.get("varieti", "").strip(),
-            "grade": r.get("gred MID", "").strip(),
-            "unit": r.get("unit", "").strip(),
-            "price": num(r.get("harga")),
-        }
-        for r in rows
-        if r["scraped_date"] == date
-    ]
-    items.sort(key=lambda x: x["item"])
-    return {
-        "source": "FAMA",
-        "date": date,
-        # The FAMA scrape is not yet checked against the FAMA website.
-        "verified": False,
-        "items": items,
-    }
+        return empty, {**empty}
+    end = max(r["tarikh"] for r in rows)
+    start = (datetime.fromisoformat(end) - timedelta(days=FAMA_WINDOW_DAYS - 1)).date().isoformat()
+
+    acc = {}
+    for r in rows:
+        if not (start <= r["tarikh"] <= end):
+            continue
+        h, n = num(r["harga"], 6), int(float(r["n"] or 0))
+        if h is None or n <= 0:
+            continue
+        item = (r["varieti"], r["gred"], r["unit"])
+        for loc in (("", ""), (r["negeri"], ""), (r["negeri"], r["daerah"])):
+            k = (r["peringkat"], *loc, *item)
+            a = acc.setdefault(k, {"sum": 0.0, "n": 0, "latest": "", "category": r["kategori"]})
+            a["sum"] += h * n
+            a["n"] += n
+            a["latest"] = max(a["latest"], r["tarikh"])
+
+    def entry(k, a):
+        level, state, district, item, grade, unit = k
+        return {"level": level, "state": state or None, "district": district or None,
+                "item": item, "grade": grade, "unit": unit, "category": a["category"],
+                "price": round(a["sum"] / a["n"], 2), "records": a["n"],
+                "latest_date": a["latest"]}
+
+    order = {lvl: i for i, lvl in enumerate(FAMA_LEVELS)}
+    keys = sorted(acc, key=lambda k: (order.get(k[0], 9), k[1], k[2], k[3], k[4]))
+    top = [entry(k, acc[k]) for k in keys if not k[2]]
+    dist = [entry(k, acc[k]) for k in keys if k[2]]
+    states = {}
+    for k in keys:
+        if k[2]:
+            states.setdefault(k[1], set()).add(k[2])
+    window = {"from": start, "to": end, "days": FAMA_WINDOW_DAYS,
+              "method": "purata ditimbang mengikut bilangan rekod (weighted by records)"}
+    meta = {"source": "FAMA", "date": end, "window": window, "levels": FAMA_LEVELS}
+    return ({**meta, "states": {s: sorted(d) for s, d in sorted(states.items())}, "items": top},
+            {**meta, "items": dist})
 
 
 def pricecatcher() -> dict:
@@ -202,23 +233,27 @@ def main():
         shutil.copytree(DATA, OUT / "data", ignore=shutil.ignore_patterns("raw", "*.png"))
 
     now = datetime.now(MYT).isoformat(timespec="seconds")
-    m, f, p = mpob(), fama(), pricecatcher()
+    m, (f, fd), p = mpob(), fama(), pricecatcher()
     src = sources(m, f, p)
     meta = {"schema": SCHEMA, "generated_at": now}
 
     write(OUT / "api" / "mpob.json", {**meta, "sources": {"mpob": src["mpob"]}, **m})
     write(OUT / "api" / "fama.json", {**meta, "sources": {"fama": src["fama"]}, **f})
+    write(OUT / "api" / "fama_daerah.json", {**meta, "sources": {"fama": src["fama"]}, **fd})
     write(OUT / "api" / "pricecatcher.json",
           {**meta, "sources": {"pricecatcher": src["pricecatcher"]}, **p})
     write(OUT / "api" / "latest.json", {
         **meta,
         "sources": src,
         "mpob": {"unit": m["unit"], **(mpob_latest(m) or {})},
-        "fama": f,
+        # National prices only; per state: fama.json, per district: fama_daerah.json.
+        "fama": {k: v for k, v in f.items() if k not in ("items", "states")}
+                | {"items": [e for e in f["items"] if e["state"] is None]},
         "pricecatcher": p,
     })
     (OUT / ".nojekyll").write_text("")
-    print(f"[site] mpob {len(m['days'])} days, fama {len(f['items'])} items, "
+    print(f"[site] mpob {len(m['days'])} days, fama {len(f['items'])} national+state "
+          f"+ {len(fd['items'])} district entries, "
           f"pricecatcher {len(p['items'])} rows -> {OUT}")
 
 
