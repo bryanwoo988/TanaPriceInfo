@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Harga Harian",
-  "short_name": "Harga Harian",
+  "name": "Price Info",
+  "short_name": "Price Info",
   "description": "Harga BTS sawit MPOB, harga pasaran FAMA dan harga runcit KPDN.",
   "lang": "ms",
   "start_url": "./",

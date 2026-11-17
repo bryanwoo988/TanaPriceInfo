@@ -1,5 +1,20 @@
 [
   {
+    "version": "1.15.1",
+    "title": "Nama di skrin utama: Price Info",
+    "notes": [
+      "Nama di bawah ikon skrin utama kini 'Price Info'. Di iPhone, nama baharu muncul selepas aplikasi dipasang semula."
+    ],
+    "title_zh": "主屏幕名称：Price Info",
+    "notes_zh": [
+      "主屏幕图标下的名称改为 “Price Info”。iPhone 需要删除后重新添加到主屏幕才会显示新名称。"
+    ],
+    "title_en": "Home-screen name: Price Info",
+    "notes_en": [
+      "The name under the home-screen icon is now 'Price Info'. On iPhone the new name appears after the app is added again."
+    ]
+  },
+  {
     "version": "1.15.0",
     "title": "Leret ke bawah untuk tutup",
     "notes": [
