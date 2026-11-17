@@ -6,3 +6,5 @@ data/raw/
 data/fama_debug.png
 .claude-flow/
 .swarm/
+# Built by scripts/build_site.py; published by the Pages workflow, not committed.
+site/
