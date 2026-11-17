@@ -1,5 +1,15 @@
 [
   {
+    "version": "1.5.0",
+    "title": "Navigasi baharu: tab MPOB, FAMA dan KPDN",
+    "notes": [
+      "Setiap sumber ada tab sendiri di bawah: MPOB, FAMA dan KPDN (sebelum ini Utama dan Runcit).",
+      "Harga FAMA terus kelihatan tanpa perlu tatal ke bawah.",
+      "Info (versi, rekod kemas kini, sejarah kutipan) kini di ikon kanan atas.",
+      "Titik merah pada tab jika data sumber itu lewat atau gagal dikutip."
+    ]
+  },
+  {
     "version": "1.4.0",
     "title": "Versi, rekod kemas kini & sejarah kutipan",
     "notes": [

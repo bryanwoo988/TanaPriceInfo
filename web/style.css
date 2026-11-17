@@ -221,8 +221,25 @@ select:disabled { opacity: .55; }
 .hist td .t { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
 .hist td.ok b, .hist td.bad b { font-size: 16px; }
 .hist th:not(:first-child), .hist td:not(.when):not([colspan]) { text-align: center; }
-.hist th:last-child { font-size: 11px; }
 .hist td.ok { color: var(--up); font-weight: 700; }
 .hist td.bad { color: var(--down); font-weight: 700; }
 .hist .note-row td { white-space: normal; padding-top: 0; }
 .hist tr:has(+ .note-row) td { border-bottom: 0; }
+
+/* ---------- header info button, tab attention dots ---------- */
+.top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.icon-btn {
+  flex: none; width: 44px; height: 44px; margin: -8px -10px -8px 0;
+  display: grid; place-items: center; border: 0; border-radius: 999px;
+  background: none; color: inherit; cursor: pointer;
+}
+.icon-btn:active, .icon-btn[aria-pressed="true"] { background: rgba(255,255,255,.18); }
+.tabs button { position: relative; }
+.tabs .dot {
+  position: absolute; top: 10px; margin-left: 4px; width: 8px; height: 8px;
+  border-radius: 50%; background: var(--down);
+}
+.tabs .dot[hidden] { display: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.row2 select { margin: 0 0 6px; min-width: 0; }
+#src-fama { margin-top: 0; }

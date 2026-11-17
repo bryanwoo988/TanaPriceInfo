@@ -53,7 +53,7 @@ const DAY = 86400000;
 const todayMYT = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
 const ageDays = (iso) => Math.round((Date.parse(todayMYT()) - Date.parse(iso.slice(0, 10))) / DAY);
 const fmtTime = (iso) => (iso ? `${fmtDate(iso).replace(/ \d{4}$/, "")}, ${iso.slice(11, 16)}` : "—");
-const SHORT = { mpob: "MPOB", fama: "FAMA", pricecatcher: "PriceCatcher" };
+const SHORT = { mpob: "MPOB", fama: "FAMA", pricecatcher: "KPDN" };
 
 function freshness(src) {
   if (!src || !src.data_date) return { level: "bad", label: "Tiada data" };
@@ -67,15 +67,16 @@ function renderSource(key, src) {
   const box = $(`src-${key}`);
   if (!box) return null;
   const f = freshness(src);
-  const dateLabel = src?.date_kind === "collected" ? "Tarikh dikutip" : "Harga bertarikh";
+  // Same day as today: show only the time of collection.
+  const when = (iso) => (iso && iso.slice(0, 10) === todayMYT() ? iso.slice(11, 16) : fmtTime(iso));
   const kids = [
     el("div", { class: "src-top" },
       el("span", { class: `pill ${f.level}` }, f.label),
-      src?.url ? el("a", { href: src.url, target: "_blank", rel: "noopener" }, `Semak di ${src.name} ↗`) : null),
+      src?.url ? el("a", { href: src.url, target: "_blank", rel: "noopener" }, `Semak di ${SHORT[key] || src.name} ↗`) : null),
     el("p", { class: "small muted" },
-      `${dateLabel}: ${fmtDate(src?.data_date)}` +
+      `Harga ${fmtDate(src?.data_date).replace(/ \d{4}$/, "")}` +
       (f.age != null ? ` (${f.age === 0 ? "hari ini" : `${f.age} hari lalu`})` : "") +
-      (src?.last_success ? ` · Kutipan berjaya: ${fmtTime(src.last_success)}` : "")),
+      (src?.last_success ? ` · dikutip ${when(src.last_success)}` : "")),
   ];
   if (src?.ok === false) {
     kids.push(el("p", { class: "small warn-text" },
@@ -92,6 +93,12 @@ function renderHealth(sources) {
   const bad = Object.entries(sources || {})
     .map(([k, s]) => [SHORT[k] || k, freshness(s)])
     .filter(([, f]) => f.level !== "ok");
+  // A dot on the bottom tab of every source that is late or failed.
+  const tabOf = { mpob: "mpob", fama: "fama", pricecatcher: "kpdn" };
+  for (const [k, t] of Object.entries(tabOf)) {
+    const dot = document.querySelector(`#t-${t} .dot`);
+    if (dot) dot.hidden = freshness((sources || {})[k]).level === "ok";
+  }
   const h = $("health");
   h.hidden = !bad.length;
   h.textContent = bad.length ? `⚠ ${bad.map(([n, f]) => `${n}: ${f.label}`).join(" · ")}` : "";
@@ -202,7 +209,7 @@ function renderFamaControls() {
   const districts = fs.state ? fama.states[fs.state] || [] : [];
   if (fs.district && !districts.includes(fs.district)) fs.district = "";
   const di = $("fama-district");
-  di.replaceChildren(el("option", { value: "" }, fs.state ? "Semua daerah" : "Pilih negeri dahulu"),
+  di.replaceChildren(el("option", { value: "" }, "Semua daerah"),
     ...districts.map((d) => el("option", { value: d }, tc(d))));
   di.value = fs.district;
   di.disabled = !fs.state;
@@ -226,7 +233,7 @@ async function renderFama() {
   }
   const w = fama.window;
   $("fama-window").textContent = w
-    ? `Purata ${w.days} hari (${shortDate(w.from)} – ${fmtDate(w.to)}), ditimbang mengikut bilangan rekod. Tekan barang untuk banding peringkat & lokasi.`
+    ? `Harga ialah purata ${w.days} hari (${shortDate(w.from)} – ${fmtDate(w.to)}), ditimbang mengikut bilangan rekod FAMA. Tekan barang untuk banding peringkat & lokasi.`
     : "";
 
   const m = matcher($("fama-search").value);
@@ -360,7 +367,7 @@ function renderHistory(items) {
   const cell = (h) => !h ? el("td", { class: "na" }, "—")
     : el("td", { class: h.ok ? "ok" : "bad", title: h.note || "" },
       el("b", {}, h.ok ? "✓" : "✗"), el("span", { class: "t" }, h.time.slice(11, 16)));
-  const head = el("tr", {}, ...["Masa", "MPOB", "FAMA", "PriceCatcher"].map((t) => el("th", {}, t)));
+  const head = el("tr", {}, ...["Masa", "MPOB", "FAMA", "KPDN"].map((t) => el("th", {}, t)));
   const body = list.flatMap((r) => {
     const notes = Object.entries(r.src).filter(([, h]) => h.note).map(([k, h]) => `${SHORT[k] || k}: ${h.note}`);
     return [
@@ -389,17 +396,24 @@ async function loadInfo() {
   }
 }
 
-/* ---------- tabs ---------- */
-const TABS = ["utama", "runcit", "info"];
-function showTab(name) {
+/* ---------- tabs (bottom) + Info (top-right icon) ---------- */
+const TABS = ["mpob", "fama", "kpdn"];
+const OLD_TABS = { utama: "mpob", runcit: "kpdn" }; // names used before v1.5.0
+let lastTab = "mpob";
+
+function showView(name) {
+  const info = name === "info";
+  if (!info) lastTab = name;
   for (const b of document.querySelectorAll(".tabs button")) {
-    const on = b.dataset.tab === name;
-    b.setAttribute("aria-selected", String(on));
-    $(`tab-${b.dataset.tab}`).hidden = !on;
+    b.setAttribute("aria-selected", String(b.dataset.tab === name));
   }
+  for (const t of [...TABS, "info"]) $(`tab-${t}`).hidden = t !== name;
+  $("info-btn").setAttribute("aria-pressed", String(info));
   store("tab", name);
-  if (name === "info") loadInfo();
+  if (info) loadInfo();
+  scrollTo(0, 0);
 }
+const showTab = showView;
 
 /* ---------- start ---------- */
 const BUILD = "__BUILD__"; // set by scripts/build_site.py, same value as in sw.js
@@ -454,8 +468,14 @@ $("fama-detail").addEventListener("click", (ev) => {  // tap outside the sheet c
 });
 $("pc-search").addEventListener("input", renderPc);
 $("pc-state").addEventListener("change", () => { store("state", $("pc-state").value); renderPc(); });
-for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => showTab(b.dataset.tab));
-showTab(TABS.includes(store("tab")) ? store("tab") : "utama");
+for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => showView(b.dataset.tab));
+$("info-btn").addEventListener("click", () => showView($("tab-info").hidden ? "info" : lastTab));
+{
+  const saved = OLD_TABS[store("tab")] || store("tab");
+  if (TABS.includes(saved)) showView(saved);
+  else if (saved === "info") { showView("info"); }
+  else showView("mpob");
+}
 
 const setOffline = () => { $("offline").hidden = navigator.onLine; };
 addEventListener("online", setOffline);
