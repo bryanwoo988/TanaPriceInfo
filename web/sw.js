@@ -57,7 +57,7 @@ function networkFirst(request, cacheName) {
         fromCache().then((hit) => {
           if (settled) return;
           settled = true;
-          resolve(hit || new Response("Luar talian", { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } }));
+          resolve(hit || new Response("Luar talian · 离线 · Offline", { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" } }));
         });
       });
   });

@@ -1,5 +1,26 @@
 [
   {
+    "version": "1.16.1",
+    "title": "Pembetulan carian dan teks",
+    "notes": [
+      "Carian kini padankan setiap perkataan, tidak kira susunan (cth. 'merah cili', 'red chilli', 泰国辣椒).",
+      "KPDN: carian tanpa hasil kini tulis 'Tiada padanan', bukan 'Tiada data'.",
+      "Beberapa teks yang masih dalam BM sahaja kini diterjemah."
+    ],
+    "title_zh": "修正搜索和文字",
+    "notes_zh": [
+      "搜索现在逐个词比对，不分先后（例：「辣椒 泰国」「red chilli」「泰国辣椒」「无籽西瓜」）。",
+      "KPDN：搜索不到时显示「没有符合的结果」，不再误写「无数据」。",
+      "几处只有马来文的提示已翻译成三语。"
+    ],
+    "title_en": "Search and text fixes",
+    "notes_en": [
+      "Search now matches each word on its own, in any order (e.g. 'chilli red', 'merah cili', 泰国辣椒).",
+      "KPDN: a search with no results now says 'No matches' instead of 'No data'.",
+      "A few messages that were only in Malay are now translated."
+    ]
+  },
+  {
     "version": "1.16.0",
     "title": "Cari barang dalam BM, English atau 中文",
     "notes": [

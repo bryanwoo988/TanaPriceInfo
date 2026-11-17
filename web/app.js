@@ -82,7 +82,7 @@ function renderSource(key, src) {
       t("src.failed", { t: fmtTime(src.last_attempt) })));
   }
   if (src?.date_kind === "collected") {
-    kids.push(el("p", { class: "small muted" }, `${src.name} tidak menyatakan tarikh harga; ini tarikh data dikutip.`));
+    kids.push(el("p", { class: "small muted" }, t("src.collected.only", { s: src.name })));
   }
   box.replaceChildren(...kids);
   return f;
@@ -569,7 +569,10 @@ function renderPc() {
     el("li", {},
       el("div", { class: "it" }, el("b", {}, r.item), el("span", {}, t("kpdn.premises", { u: r.unit, n: r.premises }))),
       el("div", { class: "pr" }, el("b", {}, `RM ${rm(r.median)}`), el("span", {}, `${rm(r.min)} – ${rm(r.max)}`)))));
-  if (!rows.length) $("pc-list").append(el("li", {}, el("span", { class: "muted" }, t("no.data"))));
+  if (!rows.length) {
+    const any = pcItems.some((r) => r.state === state);
+    $("pc-list").append(el("li", {}, el("span", { class: "muted" }, t(any ? "no.match" : "no.data"))));
+  }
 }
 
 function fillStates() {
