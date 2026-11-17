@@ -1,5 +1,20 @@
 [
   {
+    "version": "1.13.0",
+    "title": "Tukar peringkat dalam butiran barang",
+    "notes": [
+      "Dalam butiran barang, tekan Ladang / Borong / Runcit untuk tukar trend dan perbandingan negeri atau daerah ke peringkat itu."
+    ],
+    "title_zh": "在商品详情里切换层级",
+    "notes_zh": [
+      "在商品详情点农场 / 批发 / 零售，走势和各州或各县比较会切换到该层级。"
+    ],
+    "title_en": "Switch level in item details",
+    "notes_en": [
+      "In item details, tap Farm / Wholesale / Retail to switch the trend and the state or district comparison to that level."
+    ]
+  },
+  {
     "version": "1.12.4",
     "title": "Nama aplikasi ikut bahasa",
     "notes": [
