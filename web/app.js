@@ -367,9 +367,12 @@ async function renderFama() {
       el("div", { class: "it" },
         el("b", {}, favs.has(itemKey(e)) ? el("span", { class: "star on", "aria-label": t("fav") }, "★ ") : null, e.item),
         el("span", {}, gradeUnit(e))),
-      el("div", { class: "pr" }, el("b", {}, `RM ${rm(e.price)}`), changeTag(e),
-        el("span", {}, t("records", { n: e.records }) + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : "")),
-      )))));
+      // Price alone on the first line so every price lines up on the right;
+      // the weekly change goes on the second line with the record count.
+      el("div", { class: "pr" }, el("b", {}, `RM ${rm(e.price)}`),
+        el("span", { class: "meta" }, changeTag(e),
+          t("records", { n: e.records }) + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : ""))),
+      ))));
   if (!rows.length) {
     list.append(el("li", {}, el("span", { class: "muted" },
       all.length ? (fs.cat === "fav" && !favs.size ? t("fav.none") : t("no.match")) : t("fama.none", { lvl: lvlName(fs.level), loc: locLabel(fs.state, fs.district) }))));

@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.12.2",
+    "title": "Harga FAMA sejajar",
+    "notes": [
+      "Harga dalam senarai FAMA kini sejajar di sebelah kanan; ▲▼ dipindahkan ke baris kedua bersama bilangan rekod.",
+      "Warna ▲ (hijau) dan ▼ (merah) dalam senarai dibetulkan."
+    ],
+    "title_zh": "FAMA 价格对齐",
+    "notes_zh": [
+      "FAMA 列表的价格现在右边对齐；▲▼ 移到第二行，和记录笔数放在一起。",
+      "修正列表中 ▲（绿色）和 ▼（红色）的颜色。"
+    ],
+    "title_en": "FAMA prices aligned",
+    "notes_en": [
+      "Prices in the FAMA list now line up on the right; ▲▼ moved to the second line with the record count.",
+      "Fixed the colours of ▲ (green) and ▼ (red) in the list."
+    ]
+  },
+  {
     "version": "1.12.1",
     "title": "Tanda 'rekod sedikit' dibuang",
     "notes": [
