@@ -1,10 +1,6 @@
 name: Publish PWA + API
 
 on:
-  # After the daily price run finishes (it commits new data to main).
-  workflow_run:
-    workflows: ["Harga harian (FAMA + MPOB)"]
-    types: [completed]
   # When the app or the build script changes.
   push:
     branches: [main]
@@ -12,6 +8,7 @@ on:
       - "web/**"
       - "scripts/build_site.py"
       - ".github/workflows/pages.yml"
+  # Started by the daily price run after it saves new data (and by hand).
   workflow_dispatch:
 
 permissions:

@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  actions: write   # start the Pages deploy after saving data
 
 concurrency:
   group: harga-harian
@@ -75,6 +76,15 @@ jobs:
           git commit -m "data: $(TZ=Asia/Kuala_Lumpur date +%F)"
           git pull --rebase
           git push
+
+      # Publish the new prices. A push made with GITHUB_TOKEN starts no workflows,
+      # and "workflow_run" never fired here, so start the Pages deploy directly
+      # (workflow_dispatch is allowed from GITHUB_TOKEN).
+      - name: Publish site
+        if: always() && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main --repo "$GITHUB_REPOSITORY"
 
       # Fail the run (GitHub emails you) if any source failed.
       - name: Check results
