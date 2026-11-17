@@ -36,6 +36,7 @@ const STR = {
     "src.check": "Semak di {s} ↗",
     "src.price": "Harga {d}", "src.today": " (hari ini)", "src.ago": " ({n} hari lalu)", "src.collected": " · dikutip {t}",
     "src.failed": "Kutipan terakhir gagal ({t}). Harga di bawah mungkin lama.",
+    "src.collected.only": "{s} tidak menyatakan tarikh harga; ini tarikh data dikutip.",
     "no.data": "Tiada data.",
 
     "mpob.title": "Harga BTS Sawit (MPOB)",
@@ -154,6 +155,7 @@ const STR = {
     "src.check": "到 {s} 核对 ↗",
     "src.price": "价格日期 {d}", "src.today": "（今天）", "src.ago": "（{n} 天前）", "src.collected": " · 收集于 {t}",
     "src.failed": "最近一次收集失败（{t}）。以下价格可能已过时。",
+    "src.collected.only": "{s} 没有注明价格日期；这里显示的是收集数据的日期。",
     "no.data": "无数据。",
 
     "mpob.title": "油棕鲜果串价格（MPOB）",
@@ -272,6 +274,7 @@ const STR = {
     "src.check": "Check at {s} ↗",
     "src.price": "Price of {d}", "src.today": " (today)", "src.ago": " ({n} days ago)", "src.ago_one": " (1 day ago)", "src.collected": " · collected {t}",
     "src.failed": "The last collection failed ({t}). Prices below may be old.",
+    "src.collected.only": "{s} does not state a price date; this is the date the data was collected.",
     "no.data": "No data.",
 
     "mpob.title": "Oil Palm FFB Price (MPOB)",

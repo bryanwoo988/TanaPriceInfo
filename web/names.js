@@ -22,7 +22,7 @@ const NAME_ALIASES = [
   ["BAYAM", "汉菜 苋菜", "amaranth spinach"],
   ["KANGKUNG", "蕹菜 空心菜", "water spinach kangkung"],
   ["SAWI PENDEK", "小白菜 白菜仔", "bok choy pak choy"],
-  ["SIOW PAK CHOY", "小白菜", "bok choy pak choy"],
+  ["SIOW PAK CHOY", "小白菜 白菜仔", "bok choy pak choy"],
   ["SAWI", "菜心", "choy sum mustard greens"],
   ["KAILAN", "芥兰", "kai lan chinese kale"],
   ["KUBIS BULAT", "包菜 椰菜 高丽菜", "cabbage"],
@@ -95,19 +95,38 @@ function nameAliases(name) {
       zh.push(z); en.push(e); used.push(key);
     }
   }
-  const out = { zh: zh.join(" "), en: en.join(" ").toLowerCase() };
+  const uniq = (parts) => [...new Set(parts.join(" ").split(" ").filter(Boolean))].join(" ");
+  const out = { zh: uniq(zh), en: en.join(" ").toLowerCase() };
   _aliasCache.set(name, out);
   return out;
 }
 
-/** True when the query matches the Malay name (word start), or its Chinese / English terms. */
+const HAN = /[一-鿿]/;
+
+// Can a Chinese query be read as pieces of this item's terms, in any order?
+// "泰国辣椒" = 泰国 + 辣椒. Each piece is a whole term or 2+ characters of one;
+// the last piece may be any part of a term (the user may still be typing).
+function zhCovers(s, terms) {
+  if (!s) return true;
+  for (let k = s.length; k >= 1; k--) {
+    const piece = s.slice(0, k), last = k === s.length;
+    const ok = terms.some((t) => t === piece || ((k >= 2 || last) && t.includes(piece)));
+    if (ok && zhCovers(s.slice(k), terms)) return true;
+  }
+  return false;
+}
+
+/** True when every word of the query matches the Malay name (word start),
+ *  or the item's English terms (word start) or Chinese terms. Word order does not matter. */
 function nameMatches(name, query) {
-  const q = query.trim();
-  if (!q) return true;
-  const esc = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const wordStart = new RegExp(`(^|[^A-Za-z0-9])${esc}`, "i");
-  if (wordStart.test(name)) return true;
+  const words = query.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return true;
   const a = nameAliases(name);
-  if (/[一-鿿]/.test(q)) return a.zh.replace(/\s+/g, "").includes(q.replace(/\s+/g, ""));
-  return wordStart.test(a.en);
+  const terms = a.zh.split(" ").filter(Boolean);
+  return words.every((w) => {
+    const esc = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const wordStart = new RegExp(`(^|[^A-Za-z0-9])${esc}`, "i");
+    if (wordStart.test(name) || wordStart.test(a.en)) return true;
+    return HAN.test(w) && zhCovers(w, terms);
+  });
 }
