@@ -160,9 +160,94 @@ function drawChart() {
   $("chart-to").textContent = fmtDate(last.date);
 }
 
+/* ---------- MPOB: share today's prices, FFB price calculator ---------- */
+let mpobLatest = null;
+
+function mpobShareText() {
+  const m = mpobLatest;
+  const lines = Object.entries(REGION_NAMES).map(([k, n]) => `${n}: RM ${rm(m.prices?.[k])}`);
+  return `Harga BTS sawit MPOB (RM / 1% OER), ${fmtDate(m.date)}\n${lines.join("\n")}\n\nHarga Harian: ${APP_URL}`;
+}
+
+function renderCalc() {
+  const m = mpobLatest;
+  if (!m?.prices) { $("calc-out").textContent = "Tiada harga MPOB."; return; }
+  const sel = $("calc-region");
+  if (!sel.options.length) {
+    sel.replaceChildren(...Object.entries(REGION_NAMES).map(([k, n]) => el("option", { value: k }, n)));
+    sel.value = store("calc-region") || selRegion;
+    $("calc-oer").value = store("calc-oer") || "20";
+    $("calc-tons").value = store("calc-tons") || "1";
+  }
+  const region = sel.value, per1 = m.prices[region];
+  const oer = parseFloat($("calc-oer").value), tons = parseFloat($("calc-tons").value);
+  const out = $("calc-out");
+  if (per1 == null) { out.replaceChildren(el("p", { class: "warn-text" }, "Tiada harga untuk wilayah ini.")); return; }
+  if (!(oer >= 10 && oer <= 30)) {
+    out.replaceChildren(el("p", { class: "warn-text" }, "Masukkan OER antara 10% dan 30% (biasanya 18–23%)."));
+    return;
+  }
+  const perTon = per1 * oer; // MPOB quotes RM per tonne for each 1% OER
+  const kids = [
+    el("div", { class: "calc-main" }, el("b", {}, fmtRM(perTon)), el("span", {}, " / tan")),
+    el("p", { class: "small muted" }, `${fmtRM(per1)} × ${oer}% OER · ${REGION_NAMES[region]}, harga ${fmtDate(m.date)}`),
+  ];
+  if (tons > 0) kids.push(el("p", { class: "calc-total" }, `Jumlah ${tons} tan: `, el("b", {}, fmtRM(perTon * tons))));
+  out.replaceChildren(...kids);
+}
+for (const id of ["calc-region", "calc-oer", "calc-tons"]) {
+  $(id).addEventListener("input", () => { store(id, $(id).value); renderCalc(); });
+}
+$("mpob-share").addEventListener("click", () => { if (mpobLatest?.date) shareText(mpobShareText()); });
+
+/* ---------- shared: toast, share text, small line chart ---------- */
+const fmtRM = (v) => `RM ${Number(v).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+let toastTimer = 0;
+function toast(text) {
+  const t = $("toast");
+  t.textContent = text; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3000);
+}
+// Native share sheet when available; otherwise copy the text.
+async function shareText(text) {
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; }
+    catch (e) { if (e?.name === "AbortError") return; }
+  }
+  try { await navigator.clipboard.writeText(text); toast("Disalin. Tampal dalam WhatsApp atau mesej."); }
+  catch { toast("Tidak dapat berkongsi di pelayar ini."); }
+}
+
+/** Line chart into an <svg viewBox="0 0 320 H">; values may contain nulls (no data that day).
+ *  weak[i] = true draws a hollow point (e.g. a day with very few records). */
+function lineChart(svg, values, H = 120, weak = []) {
+  svg.replaceChildren();
+  const pts = values.map((v, i) => [i, v]).filter(([, v]) => v != null);
+  if (pts.length < 2) return false;
+  const W = 320, P = 14, n = values.length;
+  let lo = Math.min(...pts.map(([, v]) => v)), hi = Math.max(...pts.map(([, v]) => v));
+  if (hi - lo < 0.05 * hi || hi - lo < 0.1) { const pad = Math.max(0.05 * hi, 0.1); lo -= pad / 2; hi += pad / 2; }
+  const x = (i) => P + (i * (W - 2 * P)) / Math.max(n - 1, 1);
+  const y = (v) => H - P - ((v - lo) * (H - 2 * P)) / (hi - lo);
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  for (const v of [lo, hi]) {
+    svg.append(mk("line", { class: "gd", x1: P, x2: W - P, y1: y(v), y2: y(v) }));
+    // Labels on the left: the newest point (right end) stays visible.
+    const t = mk("text", { x: P, y: y(v) - 3, "text-anchor": "start" }); t.textContent = v.toFixed(2); svg.append(t);
+  }
+  svg.append(mk("polyline", { class: "ln", points: pts.map(([i, v]) => `${x(i)},${y(v)}`).join(" ") }));
+  for (const [i, v] of pts) {
+    svg.append(mk("circle", weak[i] ? { class: "pt weak", cx: x(i), cy: y(v), r: 2.6 } : { class: "pt", cx: x(i), cy: y(v), r: 1.8 }));
+  }
+  const [li, lv] = pts[pts.length - 1];
+  if (!weak[li]) svg.append(mk("circle", { class: "dot", cx: x(li), cy: y(lv), r: 3 }));
+  return true;
+}
+
 /* ---------- FAMA ---------- */
 const FAMA_LEVELS = ["Ladang", "Borong", "Runcit"];
-const FAMA_CATS = [["", "Semua"], ["Sayur-Sayuran", "Sayur"], ["Buah-Buahan", "Buah"], ["Ternakan", "Ternakan"]];
+const FAMA_CATS = [["", "Semua"], ["fav", "★ Kegemaran"], ["Sayur-Sayuran", "Sayur"], ["Buah-Buahan", "Buah"], ["Ternakan", "Ternakan"]];
 let fama = null;       // api/fama.json: national + state
 let famaDist = null;   // api/fama_daerah.json: loaded only when a district is needed
 let famaDistReq = null;
@@ -178,6 +263,32 @@ const tc = (s) => (s ? s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) 
 const itemKey = (e) => `${e.item}|${e.grade}|${e.unit}`;
 const shortDate = (iso) => fmtDate(iso).replace(/ \d{4}$/, "");
 const locLabel = (st, di) => (di ? `${tc(di)}, ${tc(st)}` : st ? tc(st) : "Seluruh Malaysia");
+
+// Favourites: item+grade+unit, for every level and place. Kept on this phone only.
+let favs = new Set();
+try { favs = new Set(JSON.parse(store("fama-favs") || "[]")); } catch { /* ignore */ }
+function toggleFav(key) {
+  if (favs.has(key)) favs.delete(key); else favs.add(key);
+  store("fama-favs", JSON.stringify([...favs]));
+}
+
+let famaTrend = null, famaTrendReq = null; // api/fama_trend.json: loaded when a detail opens
+function ensureTrend() {
+  if (famaTrend) return Promise.resolve(famaTrend);
+  famaTrendReq ??= getJSON("api/fama_trend.json")
+    .then((d) => (famaTrend = d))
+    .catch((e) => { famaTrendReq = null; throw e; });
+  return famaTrendReq;
+}
+
+const FEW = () => fama?.window?.few_records_below || 3;
+const fewTag = (x) => (x && x.records < FEW() ? el("em", { class: "few", title: "Sedikit rekod: purata kurang tepat" }, "rekod sedikit") : null);
+function changeTag(x) {
+  const c = x?.change_pct;
+  if (c == null || Math.abs(c) < 0.5) return null;
+  return el("span", { class: `chg ${c > 0 ? "up" : "down"}`, title: "Berbanding minggu sebelumnya" },
+    `${c > 0 ? "▲" : "▼"}${Math.abs(c).toFixed(1)}%`);
+}
 
 function ensureDist() {
   if (famaDist) return Promise.resolve(famaDist);
@@ -233,23 +344,37 @@ async function renderFama() {
   }
   const w = fama.window;
   $("fama-window").textContent = w
-    ? `Harga ialah purata ${w.days} hari (${shortDate(w.from)} – ${fmtDate(w.to)}), ditimbang mengikut bilangan rekod FAMA. Tekan barang untuk banding peringkat & lokasi.`
+    ? `Harga ialah purata ${w.days} hari (${shortDate(w.from)} – ${fmtDate(w.to)}), ditimbang mengikut bilangan rekod FAMA. ▲▼ = berbanding minggu sebelumnya. "Rekod sedikit" = kurang ${FEW()} rekod, purata kurang tepat. Tekan barang untuk banding peringkat, lokasi dan trend.`
     : "";
 
   const m = matcher($("fama-search").value);
   const src = fs.district ? famaDist.items : fama.items;
   const all = src.filter((e) => e.level === fs.level && (e.state || "") === fs.state && (e.district || "") === fs.district);
-  const rows = all.filter((e) => (!fs.cat || e.category === fs.cat) && (!m || m.test(e.item)));
+  const catOk = (e) => !fs.cat || (fs.cat === "fav" ? favs.has(itemKey(e)) : e.category === fs.cat);
+  const rows = all.filter((e) => catOk(e) && (!m || m.test(e.item)));
+  rows.sort((a, b) => (favs.has(itemKey(b)) - favs.has(itemKey(a))) || a.item.localeCompare(b.item));
   list.replaceChildren(...rows.slice(0, LIST_LIMIT).map((e) =>
     el("li", {}, el("button", { type: "button", class: "rowbtn", onclick: () => openFamaDetail(e) },
-      el("div", { class: "it" }, el("b", {}, e.item), el("span", {}, `${e.grade} · ${e.unit}`)),
-      el("div", { class: "pr" }, el("b", {}, `RM ${rm(e.price)}`),
-        el("span", {}, `${e.records} rekod` + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : "")))))));
+      el("div", { class: "it" },
+        el("b", {}, favs.has(itemKey(e)) ? el("span", { class: "star on", "aria-label": "Kegemaran" }, "★ ") : null, e.item),
+        el("span", {}, `${e.grade} · ${e.unit}`)),
+      el("div", { class: "pr" }, el("b", {}, `RM ${rm(e.price)}`), changeTag(e),
+        el("span", {}, `${e.records} rekod` + (w && e.latest_date < w.to ? ` · ${shortDate(e.latest_date)}` : "")),
+        fewTag(e))))));
   if (!rows.length) {
     list.append(el("li", {}, el("span", { class: "muted" },
-      all.length ? "Tiada padanan." : `Tiada harga ${fs.level} untuk ${locLabel(fs.state, fs.district)} dalam tempoh ini.`)));
+      all.length ? (fs.cat === "fav" && !favs.size ? "Belum ada kegemaran. Buka barang dan tekan ☆ untuk simpan." : "Tiada padanan.") : `Tiada harga ${fs.level} untuk ${locLabel(fs.state, fs.district)} dalam tempoh ini.`)));
   }
   $("fama-count").textContent = `${rows.length} barang · ${fs.level} · ${locLabel(fs.state, fs.district)}`;
+}
+
+function famaShareText(e, chain) {
+  const w = fama.window;
+  const lines = chain.filter(([, x]) => x).map(([l, x]) =>
+    `${l}: RM ${rm(x.price)}${x.records < FEW() ? " (rekod sedikit)" : ""}`);
+  return `${e.item} (${e.grade}, RM/${e.unit})\n${locLabel(fs.state, fs.district)}\n${lines.join("\n")}\n` +
+    (w ? `Purata ${w.days} hari ${shortDate(w.from)} – ${fmtDate(w.to)}, FAMA\n` : "") +
+    `\nHarga Harian: ${APP_URL}`;
 }
 
 async function openFamaDetail(e) {
@@ -265,7 +390,8 @@ async function openFamaDetail(e) {
     el("div", { class: `lvl${l === fs.level ? " cur" : ""}` },
       el("span", { class: "small muted" }, l),
       el("b", {}, x ? rm(x.price) : "—"),
-      el("span", { class: "small muted" }, x ? `${x.records} rekod` : "tiada data")),
+      el("span", { class: "small muted" }, x ? `${x.records} rekod` : "tiada data"),
+      changeTag(x), fewTag(x)),
   ]));
 
   // 2. Same level, compare places: states (or districts of the chosen state).
@@ -280,28 +406,72 @@ async function openFamaDetail(e) {
     const cur = fs.state ? x.district === fs.district : false;
     const tag = peers.length > 1 && x === lo ? "Terendah" : peers.length > 1 && x === hi ? "Tertinggi" : "";
     return el("li", { class: cur ? "cur" : "" },
-      el("span", { class: "pname" }, tc(name), tag ? el("em", { class: x === lo ? "lo" : "hi" }, tag) : null),
+      el("span", { class: "pname" }, tc(name), tag ? el("em", { class: x === lo ? "lo" : "hi" }, tag) : null,
+        x.records < FEW() ? el("em", { class: "few", title: "Sedikit rekod" }, "sedikit") : null),
       el("span", { class: "bar" }, el("i", { style: `width:${Math.round((x.price / max) * 100)}%` })),
       el("b", {}, rm(x.price)));
   }));
 
+  // 3. Trend: daily average, last 30 days (state level when a district is chosen).
+  const trendBox = el("div", { class: "trend" }, el("p", { class: "small muted" }, "Memuatkan trend…"));
+
   const w = fama.window;
+  const star = el("button", {
+    type: "button", class: `close star-btn${favs.has(key) ? " on" : ""}`,
+    "aria-label": favs.has(key) ? "Buang dari kegemaran" : "Simpan sebagai kegemaran", "aria-pressed": String(favs.has(key)),
+    onclick: () => {
+      toggleFav(key);
+      const on = favs.has(key);
+      star.textContent = on ? "★" : "☆"; star.classList.toggle("on", on);
+      star.setAttribute("aria-pressed", String(on));
+      star.setAttribute("aria-label", on ? "Buang dari kegemaran" : "Simpan sebagai kegemaran");
+      toast(on ? "Disimpan dalam Kegemaran." : "Dibuang dari Kegemaran.");
+      renderFama();
+    },
+  }, favs.has(key) ? "★" : "☆");
   dlg.replaceChildren(
     el("div", { class: "sheet-head" },
       el("div", {}, el("h3", { id: "fd-title" }, e.item),
         el("p", { class: "small muted" }, `${e.grade} · RM / ${e.unit} · ${locLabel(fs.state, fs.district)}`)),
-      el("button", { type: "button", class: "close", "aria-label": "Tutup", onclick: () => dlg.close() }, "✕")),
+      el("div", { class: "head-btns" }, star,
+        el("button", { type: "button", class: "close", "aria-label": "Tutup", onclick: () => dlg.close() }, "✕"))),
     el("h4", {}, "Rantaian harga"),
     chainBox,
     lad && run ? el("p", { class: "small" },
       `Harga runcit ${Math.round(((run - lad) / lad) * 100)}% lebih tinggi daripada harga ladang.`) : null,
+    el("h4", {}, `Trend 30 hari (${fs.level}, ${fs.state ? tc(fs.state) : "Seluruh Malaysia"})`),
+    trendBox,
     el("h4", {}, `Mengikut ${fs.state ? `daerah di ${tc(fs.state)}` : "negeri"} (${fs.level})`),
     peers.length ? peerList : el("p", { class: "small muted" }, "Tiada data lokasi lain."),
+    el("button", { type: "button", class: "btn primary wide", onclick: () => shareText(famaShareText(e, chain)) }, "Kongsi harga"),
     el("p", { class: "small muted" },
       w ? `Purata ${w.days} hari (${shortDate(w.from)} – ${fmtDate(w.to)}). ` : "",
       el("a", { href: fama.sources?.fama?.url || "https://www.fama.gov.my/harga-pasaran-terkini", target: "_blank", rel: "noopener" }, "Semak di FAMA ↗")),
   );
   if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+
+  try {
+    const t = await ensureTrend();
+    const raw = t.series[`${fs.level}|${fs.state}|${key}`];
+    const vals = raw?.map((d) => (d ? d[0] : null));
+    const weak = raw?.map((d) => !!d && d[1] < FEW()) || [];
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 320 110"); svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("class", "chart"); svg.setAttribute("role", "img");
+    if (vals && lineChart(svg, vals, 110, weak)) {
+      const days = vals.filter((v) => v != null).length;
+      const nWeak = weak.filter(Boolean).length;
+      svg.setAttribute("aria-label", `Trend harga ${e.item}, ${days} hari ada rekod`);
+      trendBox.replaceChildren(svg,
+        el("div", { class: "chart-axis small muted" }, el("span", {}, shortDate(t.dates[0])), el("span", {}, shortDate(t.dates[t.dates.length - 1]))),
+        el("p", { class: "small muted" }, `Purata harian · ${days} daripada ${vals.length} hari ada rekod.` +
+          (nWeak ? ` Titik kosong ○ = kurang ${FEW()} rekod hari itu (kurang tepat).` : "")));
+    } else {
+      trendBox.replaceChildren(el("p", { class: "small muted" }, "Tidak cukup rekod untuk trend."));
+    }
+  } catch {
+    trendBox.replaceChildren(el("p", { class: "small muted" }, "Trend tidak dapat dimuatkan."));
+  }
 }
 
 /* ---------- PriceCatcher ---------- */
@@ -567,7 +737,8 @@ let lastLoad = 0;
 
 async function load() {
   lastLoad = Date.now();
-  famaDist = null; famaDistReq = null; // district prices are re-read when next needed
+  famaDist = null; famaDistReq = null; // district prices and trend are re-read when next needed
+  famaTrend = null; famaTrendReq = null;
   try {
     const [latest, mpob, famaData] = await Promise.all(
       [getJSON("api/latest.json"), getJSON("api/mpob.json"), getJSON("api/fama.json")]);
@@ -580,6 +751,8 @@ async function load() {
 
     mpobDays = mpob.days || [];
     renderMpob(latest.mpob);
+    mpobLatest = latest.mpob;
+    renderCalc();
     drawChart();
 
     fama = famaData;

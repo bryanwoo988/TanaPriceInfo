@@ -37,13 +37,28 @@
           <span class="muted small">RM / 1% OER</span>
         </div>
         <div class="src" id="src-mpob"></div>
-        <p class="muted small" id="mpob-date"></p>
+        <div class="row-between">
+          <p class="muted small" id="mpob-date"></p>
+          <button type="button" class="link-btn" id="mpob-share">Kongsi</button>
+        </div>
         <ul class="regions" id="mpob-list"></ul>
         <div class="chart-wrap">
           <p class="small muted" id="chart-title"></p>
           <svg id="mpob-chart" viewBox="0 0 320 120" preserveAspectRatio="none" role="img"></svg>
           <div class="chart-axis small muted"><span id="chart-from"></span><span id="chart-to"></span></div>
         </div>
+      </article>
+
+      <article class="card" id="calc">
+        <h2>Kira harga BTS anda</h2>
+        <p class="small muted">Harga MPOB adalah untuk setiap 1% kadar perahan minyak (OER). Masukkan OER dan berat buah anda.</p>
+        <div class="calc-grid">
+          <label class="fld"><span class="small muted">Wilayah</span><select id="calc-region"></select></label>
+          <label class="fld"><span class="small muted">OER (%)</span><input id="calc-oer" type="number" inputmode="decimal" min="10" max="30" step="0.1"></label>
+          <label class="fld"><span class="small muted">Berat (tan)</span><input id="calc-tons" type="number" inputmode="decimal" min="0" step="0.01"></label>
+        </div>
+        <div class="calc-out" id="calc-out" aria-live="polite"></div>
+        <p class="small muted">Anggaran berdasarkan harga rujukan MPOB di pintu kilang. Harga sebenar bergantung pada kilang, gred buah, potongan dan kos pengangkutan.</p>
       </article>
     </section>
 
@@ -112,6 +127,7 @@
     <p class="muted small center" id="build"></p>
   </main>
 
+  <div id="toast" class="toast" role="status" hidden></div>
   <dialog id="fama-detail" class="sheet" aria-labelledby="fd-title"></dialog>
   <dialog id="install-guide" class="sheet" aria-labelledby="ig-title"></dialog>
   <dialog id="qr-big" class="qr-big" aria-label="Kod QR besar">

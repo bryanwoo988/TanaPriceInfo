@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.8.0",
+    "title": "Kalkulator BTS, trend, kegemaran & kongsi harga",
+    "notes": [
+      "MPOB: kira harga BTS anda (OER × harga MPOB) per tan dan jumlah ikut berat.",
+      "FAMA: trend 30 hari dalam butiran barang, dan ▲▼ berbanding minggu sebelumnya.",
+      "Kegemaran: tekan ☆ pada barang; kegemaran di atas senarai dan ada penapis '★ Kegemaran'.",
+      "Kongsi harga satu barang (atau harga MPOB hari ini) ke WhatsApp.",
+      "Tanda 'rekod sedikit' jika purata dari kurang 3 rekod FAMA."
+    ]
+  },
+  {
     "version": "1.7.0",
     "title": "Panduan pasang di skrin utama",
     "notes": [

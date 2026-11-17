@@ -285,3 +285,44 @@ select:disabled { opacity: .55; }
 .steps svg { vertical-align: -4px; color: var(--brand); }
 #install-guide > p { margin: 10px 0 4px; }
 #install-guide h3:focus { outline: none; }
+
+/* ---------- v1.8: calculator, share, favourites, change, few records, trend ---------- */
+.row-between { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.link-btn { font: inherit; font-size: 14px; font-weight: 600; color: var(--brand); background: none; border: 0; padding: 6px 0; cursor: pointer; }
+.calc-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+.calc-grid input, .calc-grid select {
+  width: 100%; font: inherit; color: var(--text); background: var(--field);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin: 2px 0 0; min-width: 0;
+}
+.calc-out { background: var(--ok-bg); border-radius: 12px; padding: 12px; margin: 10px 0 4px; }
+.calc-main b { font-size: 28px; font-variant-numeric: tabular-nums; }
+.calc-main span { color: var(--muted); }
+.calc-out p { margin: 4px 0 0; }
+.calc-total b { font-size: 18px; font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(76px + env(safe-area-inset-bottom));
+  background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 14px;
+  max-width: calc(100% - 32px); z-index: 50; box-shadow: 0 4px 16px rgba(0,0,0,.25);
+}
+.toast[hidden] { display: none; }
+.list .pr .chg { display: inline-block; margin-left: 6px; font-size: 12px; }
+em.few {
+  display: inline-block; font-style: normal; font-size: 11px; font-weight: 600; white-space: nowrap;
+  color: var(--warn-ink); background: var(--warn-bg); border-radius: 999px; padding: 0 6px; margin-top: 2px;
+}
+.peers em.few { margin-left: 6px; }
+.star.on { color: #d49b00; }
+.head-btns { display: flex; gap: 8px; flex: none; }
+.star-btn { font-size: 20px; }
+.star-btn.on { color: #d49b00; }
+.chain .lvl .chg { display: block; margin: 2px 0 0; font-size: 12px; }
+.chain .lvl em.few { margin-top: 4px; }
+.trend .chart { width: 100%; height: 110px; display: block; }
+.trend .chart .ln { fill: none; stroke: var(--brand); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.trend .chart .gd { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.trend .chart .pt { fill: var(--brand); opacity: .55; }
+.trend .chart .pt.weak { fill: var(--card); stroke: var(--brand); stroke-width: 1.2; opacity: .9; vector-effect: non-scaling-stroke; }
+.trend .chart .dot { fill: var(--brand); }
+.trend .chart text { fill: var(--muted); font-size: 10px; }
+.trend p { margin: 4px 0 0; }
+#fama-detail .btn.wide { margin-top: 16px; }

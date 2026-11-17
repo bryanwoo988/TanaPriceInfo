@@ -8,6 +8,7 @@ API (all JSON, UTF-8, CORS open on GitHub Pages):
   api/mpob.json          every MPOB day collected
   api/fama.json          FAMA 7-day average per level, national + per state
   api/fama_daerah.json   FAMA 7-day average per level and district
+  api/fama_trend.json    FAMA daily average, last 30 days, national + per state
   api/pricecatcher.json  newest PriceCatcher day, every state
 Prices are numbers (RM) or null when missing.
 
@@ -123,42 +124,67 @@ FAMA_WINDOW_DAYS = 7
 FAMA_LEVELS = ["Ladang", "Borong", "Runcit"]
 
 
-def fama() -> tuple[dict, dict]:
+FAMA_TREND_DAYS = 30
+FAMA_FEW_RECORDS = 3  # fewer records than this: the average is shaky ("rekod sedikit")
+
+
+def fama() -> tuple[dict, dict, dict]:
     """FAMA prices averaged over the last FAMA_WINDOW_DAYS days of data.
 
     The CSV holds one average per date/level/state/district/commodity plus `n`,
     the number of price records behind it, so averages are rebuilt exactly as
-    FAMA's page does (weighted by n). Returns (national + state, district).
+    FAMA's page does (weighted by n).
+    Returns (national + state, district, daily trend for national + state).
     """
     rows = [r for f in sorted((DATA / "fama").glob("[0-9][0-9][0-9][0-9]-[0-9][0-9].csv"))
             for r in read_csv(f)]
     empty = {"source": "FAMA", "date": None, "window": None, "items": []}
     if not rows:
-        return empty, {**empty}
+        return empty, {**empty}, {"source": "FAMA", "dates": [], "series": {}}
     end = max(r["tarikh"] for r in rows)
-    start = (datetime.fromisoformat(end) - timedelta(days=FAMA_WINDOW_DAYS - 1)).date().isoformat()
+    day = lambda back: (datetime.fromisoformat(end) - timedelta(days=back)).date().isoformat()
+    start = day(FAMA_WINDOW_DAYS - 1)
+    prev_start, prev_end = day(2 * FAMA_WINDOW_DAYS - 1), day(FAMA_WINDOW_DAYS)
+    trend_dates = [day(i) for i in range(FAMA_TREND_DAYS - 1, -1, -1)]
+    trend_first = trend_dates[0]
 
-    acc = {}
+    acc, prev, daily = {}, {}, {}
     for r in rows:
-        if not (start <= r["tarikh"] <= end):
-            continue
+        t = r["tarikh"]
         h, n = num(r["harga"], 6), int(float(r["n"] or 0))
         if h is None or n <= 0:
             continue
         item = (r["varieti"], r["gred"], r["unit"])
-        for loc in (("", ""), (r["negeri"], ""), (r["negeri"], r["daerah"])):
-            k = (r["peringkat"], *loc, *item)
-            a = acc.setdefault(k, {"sum": 0.0, "n": 0, "latest": "", "category": r["kategori"]})
-            a["sum"] += h * n
-            a["n"] += n
-            a["latest"] = max(a["latest"], r["tarikh"])
+        locs = (("", ""), (r["negeri"], ""), (r["negeri"], r["daerah"]))
+        if start <= t <= end:
+            for loc in locs:
+                a = acc.setdefault((r["peringkat"], *loc, *item),
+                                   {"sum": 0.0, "n": 0, "latest": "", "category": r["kategori"]})
+                a["sum"] += h * n
+                a["n"] += n
+                a["latest"] = max(a["latest"], t)
+        elif prev_start <= t <= prev_end:  # the week before: for "change vs last week"
+            for loc in locs:
+                a = prev.setdefault((r["peringkat"], *loc, *item), {"sum": 0.0, "n": 0})
+                a["sum"] += h * n
+                a["n"] += n
+        if t >= trend_first:  # daily averages, national + state only (district is too thin)
+            for loc in locs[:2]:
+                a = daily.setdefault((r["peringkat"], loc[0], *item), {}).setdefault(t, [0.0, 0])
+                a[0] += h * n
+                a[1] += n
 
     def entry(k, a):
         level, state, district, item, grade, unit = k
+        price = round(a["sum"] / a["n"], 2)
+        p = prev.get(k)
+        prev_price = round(p["sum"] / p["n"], 2) if p and p["n"] else None
         return {"level": level, "state": state or None, "district": district or None,
                 "item": item, "grade": grade, "unit": unit, "category": a["category"],
-                "price": round(a["sum"] / a["n"], 2), "records": a["n"],
-                "latest_date": a["latest"]}
+                "price": price, "records": a["n"], "latest_date": a["latest"],
+                "few_records": a["n"] < FAMA_FEW_RECORDS,
+                "prev_price": prev_price,
+                "change_pct": round((price - prev_price) / prev_price * 100, 1) if prev_price else None}
 
     order = {lvl: i for i, lvl in enumerate(FAMA_LEVELS)}
     keys = sorted(acc, key=lambda k: (order.get(k[0], 9), k[1], k[2], k[3], k[4]))
@@ -169,10 +195,20 @@ def fama() -> tuple[dict, dict]:
         if k[2]:
             states.setdefault(k[1], set()).add(k[2])
     window = {"from": start, "to": end, "days": FAMA_WINDOW_DAYS,
+              "previous_from": prev_start, "previous_to": prev_end,
+              "few_records_below": FAMA_FEW_RECORDS,
               "method": "purata ditimbang mengikut bilangan rekod (weighted by records)"}
     meta = {"source": "FAMA", "date": end, "window": window, "levels": FAMA_LEVELS}
+    # Trend: key "level|state|item|grade|unit" (state empty = all Malaysia),
+    # one [price, records] per date in `dates` (null = no record that day).
+    series = {
+        "|".join((lvl, st, it, gr, un)): [[round(v[d][0] / v[d][1], 2), v[d][1]] if d in v else None
+                                          for d in trend_dates]
+        for (lvl, st, it, gr, un), v in sorted(daily.items())
+    }
+    trend = {"source": "FAMA", "dates": trend_dates, "series": series}
     return ({**meta, "states": {s: sorted(d) for s, d in sorted(states.items())}, "items": top},
-            {**meta, "items": dist})
+            {**meta, "items": dist}, trend)
 
 
 def pricecatcher() -> dict:
@@ -305,13 +341,14 @@ def main():
         shutil.copytree(DATA, OUT / "data", ignore=shutil.ignore_patterns("raw", "*.png"))
 
     now = datetime.now(MYT).isoformat(timespec="seconds")
-    m, (f, fd), p = mpob(), fama(), pricecatcher()
+    m, (f, fd, ft), p = mpob(), fama(), pricecatcher()
     src = sources(m, f, p)
     meta = {"schema": SCHEMA, "generated_at": now}
 
     write(OUT / "api" / "mpob.json", {**meta, "sources": {"mpob": src["mpob"]}, **m})
     write(OUT / "api" / "fama.json", {**meta, "sources": {"fama": src["fama"]}, **f})
     write(OUT / "api" / "fama_daerah.json", {**meta, "sources": {"fama": src["fama"]}, **fd})
+    write(OUT / "api" / "fama_trend.json", {**meta, **ft})
     write(OUT / "api" / "pricecatcher.json",
           {**meta, "sources": {"pricecatcher": src["pricecatcher"]}, **p})
     write(OUT / "api" / "latest.json", {
