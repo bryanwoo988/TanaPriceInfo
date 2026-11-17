@@ -1,0 +1,74 @@
+[
+ {
+  "source": "mpob",
+  "time": "2026-11-17T09:44:03+08:00",
+  "ok": true,
+  "note": "",
+  "run": "43997708669",
+  "trigger": "manual"
+ },
+ {
+  "source": "fama",
+  "time": "2026-11-17T09:44:37+08:00",
+  "ok": true,
+  "note": "Kaedah lama: purata bercampur (dibetulkan dalam versi 1.2.0)",
+  "run": "43997708669",
+  "trigger": "manual"
+ },
+ {
+  "source": "pricecatcher",
+  "time": "2026-11-17T09:44:41+08:00",
+  "ok": true,
+  "note": "",
+  "run": "43997708669",
+  "trigger": "manual"
+ },
+ {
+  "source": "mpob",
+  "time": "2026-11-17T10:32:08+08:00",
+  "ok": true,
+  "note": "",
+  "run": "44003609709",
+  "trigger": "manual"
+ },
+ {
+  "source": "fama",
+  "time": "2026-11-17T10:32:40+08:00",
+  "ok": true,
+  "note": "Ujian struktur data FAMA",
+  "run": "44003609709",
+  "trigger": "manual"
+ },
+ {
+  "source": "pricecatcher",
+  "time": "2026-11-17T10:32:45+08:00",
+  "ok": true,
+  "note": "",
+  "run": "44003609709",
+  "trigger": "manual"
+ },
+ {
+  "source": "mpob",
+  "time": "2026-11-17T10:38:47+08:00",
+  "ok": true,
+  "note": "",
+  "run": "44004368999",
+  "trigger": "manual"
+ },
+ {
+  "source": "fama",
+  "time": "2026-11-17T10:39:55+08:00",
+  "ok": true,
+  "note": "Kaedah baharu: mengikut peringkat, negeri dan daerah",
+  "run": "44004368999",
+  "trigger": "manual"
+ },
+ {
+  "source": "pricecatcher",
+  "time": "2026-11-17T10:40:00+08:00",
+  "ok": true,
+  "note": "",
+  "run": "44004368999",
+  "trigger": "manual"
+ }
+]

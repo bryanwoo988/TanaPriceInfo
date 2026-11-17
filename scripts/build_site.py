@@ -26,6 +26,7 @@ import hashlib
 import json
 import math
 import shutil
+import subprocess
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -220,6 +221,48 @@ def sources(m: dict, f: dict, p: dict) -> dict:
     return out
 
 
+def git(*args: str) -> str:
+    return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True,
+                          check=True).stdout
+
+
+def to_myt(iso: str) -> str:
+    return datetime.fromisoformat(iso).astimezone(MYT).isoformat(timespec="seconds")
+
+
+def changelog() -> list[dict]:
+    """web/changelog.json with the real release time of each version, from git.
+
+    A version's release time is when it reached the main line: the given
+    `commit` (for versions released before this file existed), otherwise the
+    first first-parent commit whose web/changelog.json lists the version, which
+    on main is the merge commit of its pull request. Never typed by hand.
+    """
+    entries = json.loads((WEB / "changelog.json").read_text(encoding="utf-8"))
+    times: dict[str, str] = {}
+    try:
+        for e in entries:
+            if e.get("commit"):
+                times[e["version"]] = to_myt(git("show", "-s", "--format=%cI", e["commit"]).strip())
+        log = git("log", "--first-parent", "--reverse", "--format=%H %cI", "HEAD", "--", "web/changelog.json")
+        for line in log.splitlines():
+            sha, when = line.split()
+            try:
+                listed = json.loads(git("show", f"{sha}:web/changelog.json"))
+            except (subprocess.CalledProcessError, ValueError):
+                continue
+            for e in listed:
+                times.setdefault(e["version"], to_myt(when))
+    except (OSError, subprocess.CalledProcessError) as e:
+        print(f"[site] WARNING: no git history for release times ({e})")
+    out = [{"version": e["version"], "released_at": times.get(e["version"]),
+            "title": e["title"], "notes": e.get("notes", [])} for e in entries]
+    missing = [e["version"] for e in out if not e["released_at"]]
+    if missing:
+        print(f"[site] WARNING: release time unknown for {missing}")
+    return out
+
+
 def app_build_id() -> str:
     """Short hash of everything in web/: changes exactly when the app changes."""
     h = hashlib.sha256()
@@ -229,14 +272,18 @@ def app_build_id() -> str:
     return h.hexdigest()[:10]
 
 
-def stamp_build(build: str) -> None:
-    """Write the build id into sw.js (so browsers see an update) and app.js."""
+def stamp(values: dict[str, str]) -> None:
+    """Write build id / version into sw.js (so browsers see an update) and app.js."""
     for name in ("sw.js", "app.js"):
         f = OUT / name
         text = f.read_text(encoding="utf-8")
-        if "__BUILD__" not in text:
-            raise SystemExit(f"[site] __BUILD__ placeholder missing in {name}")
-        f.write_text(text.replace("__BUILD__", build), encoding="utf-8")
+        for key, val in values.items():
+            if name == "sw.js" and key != "__BUILD__":
+                continue
+            if key not in text:
+                raise SystemExit(f"[site] {key} placeholder missing in {name}")
+            text = text.replace(key, val)
+        f.write_text(text, encoding="utf-8")
 
 
 def write(path: Path, obj) -> None:
@@ -250,7 +297,10 @@ def main():
         shutil.rmtree(OUT)
     shutil.copytree(WEB, OUT)
     build = app_build_id()
-    stamp_build(build)
+    log = changelog()
+    current = log[0]
+    stamp({"__BUILD__": build, "__VERSION__": current["version"],
+           "__RELEASED__": current["released_at"] or ""})
     if DATA.exists():
         shutil.copytree(DATA, OUT / "data", ignore=shutil.ignore_patterns("raw", "*.png"))
 
@@ -274,8 +324,15 @@ def main():
         "pricecatcher": p,
     })
     (OUT / ".nojekyll").write_text("")
-    write(OUT / "version.json", {"build": build, "generated_at": now})
-    print(f"[site] app build {build}")
+    write(OUT / "version.json", {"version": current["version"], "released_at": current["released_at"],
+                                 "build": build, "generated_at": now})
+    write(OUT / "changelog.json", log)
+    try:
+        history = json.loads((DATA / "history.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        history = []
+    write(OUT / "api" / "history.json", {**meta, "days": 90, "items": history})
+    print(f"[site] app {current['version']} released {current['released_at']} build {build}")
     print(f"[site] mpob {len(m['days'])} days, fama {len(f['items'])} national+state "
           f"+ {len(fd['items'])} district entries, "
           f"pricecatcher {len(p['items'])} rows -> {OUT}")
