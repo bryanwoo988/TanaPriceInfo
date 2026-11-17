@@ -270,3 +270,18 @@ select:disabled { opacity: .55; }
 .qr-big p { margin: 6px 0 0; font-weight: 700; font-size: 18px; }
 .qr-big p.small { font-weight: 400; font-size: 14px; color: #444; }
 .qr-big .btn { margin-top: 14px; width: 100%; background: #f1f4f2; color: #111; border-color: #ddd; }
+
+/* ---------- install guide ---------- */
+.btn.wide { width: 100%; margin-top: 10px; }
+.btn.later { background: none; border-color: transparent; color: var(--muted); }
+.steps { list-style: none; margin: 10px 0 4px; padding: 0; counter-reset: none; }
+.steps li { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.steps li:last-child { border-bottom: 0; }
+.steps .n {
+  flex: none; width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center;
+  background: var(--brand); color: var(--brand-ink); font-weight: 700; font-size: 14px;
+}
+.steps .t { line-height: 1.5; }
+.steps svg { vertical-align: -4px; color: var(--brand); }
+#install-guide > p { margin: 10px 0 4px; }
+#install-guide h3:focus { outline: none; }

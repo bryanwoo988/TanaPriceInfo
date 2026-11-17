@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.7.0",
+    "title": "Panduan pasang di skrin utama",
+    "notes": [
+      "Kali pertama dibuka di pelayar, panduan muncul untuk tambah aplikasi ke skrin utama, ikut jenis telefon (iPhone, Android).",
+      "Di Chrome Android: butang 'Pasang sekarang' terus.",
+      "Jika dibuka dalam aplikasi seperti Facebook atau Instagram: panduan untuk buka dalam Safari / Chrome dahulu.",
+      "Panduan boleh dibuka semula di Info → 'Cara pasang di skrin utama'.",
+      "Nama di skrin utama Android kini 'Harga Harian'."
+    ]
+  },
+  {
     "version": "1.6.0",
     "title": "Kongsi aplikasi dengan kod QR",
     "notes": [

@@ -32,6 +32,7 @@
 - 界面用马来文。底部三个标签：**MPOB**（油棕 FFB 价：6 区、涨跌、走势图）、**FAMA**（Ladang/Borong/Runcit、州、县、分类、搜索；点产品看三个层级和各州/各县比较）、**KPDN**（PriceCatcher 按州零售价）。右上角 ⓘ 是 Info（版本、更新记录、抓取历史）。某个来源过期或抓取失败时，它的标签旁有红点。
 - 手机加到主屏幕：iPhone 用 Safari → 分享 → 「添加到主屏幕」；Android 用 Chrome → 菜单 → 「安装应用」。
 - 离线时显示上次打开时的价格。
+- **安装教学**：第一次在手机浏览器打开时，从底部弹出"加到主屏幕"教学，按手机类型显示：iPhone Safari 步骤、Android Chrome 一键"Pasang sekarang"（不支持时显示选单步骤）、在 Facebook/Instagram 等 app 内打开时先教用 Safari/Chrome 打开。关掉后不再自动出现；已安装（从主屏幕打开）不会出现；电脑不自动出现。Info 页的"Cara pasang di skrin utama"可再打开。
 - **分享**：Info 页最上面有 QR code（点一下放大）、"Kongsi"（手机分享选单）和"Salin pautan"（复制网址）。
   QR 图是 `web/icons/qr.svg`，内容固定为 `https://bryanwoo988.github.io/TanaPriceInfo/`。**repo 改名或换网址时要重新生成**：
   `pip install segno` 然后 `python -c "import segno; segno.make('新网址', error='m').save('web/icons/qr.svg', border=4)"`，并改 `web/app.js` 里的 `APP_URL`。
