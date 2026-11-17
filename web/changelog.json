@@ -1,5 +1,20 @@
 [
   {
+    "version": "1.9.0",
+    "title": "Bahasa Cina / Bahasa Melayu",
+    "notes": [
+      "Butang tukar bahasa di kanan atas: 中文 / BM.",
+      "Nama barang FAMA dan KPDN, negeri dan daerah kekal seperti asal.",
+      "Pilihan bahasa diingat; kali pertama ikut bahasa telefon."
+    ],
+    "title_zh": "中文 / 马来文界面",
+    "notes_zh": [
+      "右上角新增语言切换按钮：中文 / BM。",
+      "FAMA、KPDN 的商品名称以及州名、县名保持原文。",
+      "会记住你的选择；第一次打开时按手机语言显示。"
+    ]
+  },
+  {
     "version": "1.8.0",
     "title": "Kalkulator BTS, trend, kegemaran & kongsi harga",
     "notes": [
@@ -8,6 +23,14 @@
       "Kegemaran: tekan ☆ pada barang; kegemaran di atas senarai dan ada penapis '★ Kegemaran'.",
       "Kongsi harga satu barang (atau harga MPOB hari ini) ke WhatsApp.",
       "Tanda 'rekod sedikit' jika purata dari kurang 3 rekod FAMA."
+    ],
+    "title_zh": "鲜果串计算器、走势、收藏和分享价格",
+    "notes_zh": [
+      "MPOB：输入出油率和重量，计算每吨价格和总额（OER × MPOB 价格）。",
+      "FAMA：商品详情显示 30 天走势，列表显示与上一周相比的 ▲▼。",
+      "收藏：在商品点 ☆，收藏的商品排在最前，可用“★ 收藏”筛选。",
+      "把单一商品的价格（或当天 MPOB 价格）分享到 WhatsApp。",
+      "平均价来自少于 3 笔 FAMA 记录时，标示“记录少”。"
     ]
   },
   {
@@ -19,6 +42,14 @@
       "Jika dibuka dalam aplikasi seperti Facebook atau Instagram: panduan untuk buka dalam Safari / Chrome dahulu.",
       "Panduan boleh dibuka semula di Info → 'Cara pasang di skrin utama'.",
       "Nama di skrin utama Android kini 'Harga Harian'."
+    ],
+    "title_zh": "添加到主屏幕教学",
+    "notes_zh": [
+      "第一次在浏览器打开时，按手机类型（iPhone、Android）显示如何添加到主屏幕。",
+      "Android Chrome：直接显示“立即安装”按钮。",
+      "在 Facebook、Instagram 等应用内打开时：先教用 Safari / Chrome 打开。",
+      "可在资讯 → “如何添加到主屏幕”再次打开。",
+      "Android 主屏幕名称改为 “Harga Harian”。"
     ]
   },
   {
@@ -27,6 +58,11 @@
     "notes": [
       "Kad 'Kongsi aplikasi' di Info (ikon kanan atas): kod QR, butang Kongsi dan Salin pautan.",
       "Tekan kod QR untuk besarkan dan tunjuk kepada orang lain untuk diimbas."
+    ],
+    "title_zh": "用二维码分享应用",
+    "notes_zh": [
+      "资讯页（右上角图标）新增“分享应用”：二维码、分享和复制链接按钮。",
+      "点击二维码可放大，方便给别人扫描。"
     ]
   },
   {
@@ -37,6 +73,13 @@
       "Harga FAMA terus kelihatan tanpa perlu tatal ke bawah.",
       "Info (versi, rekod kemas kini, sejarah kutipan) kini di ikon kanan atas.",
       "Titik merah pada tab jika data sumber itu lewat atau gagal dikutip."
+    ],
+    "title_zh": "新导航：MPOB、FAMA、KPDN 标签",
+    "notes_zh": [
+      "每个来源在底部有自己的标签：MPOB、FAMA、KPDN（以前是 Utama 和 Runcit）。",
+      "打开 FAMA 就看到价格，不用往下滑。",
+      "资讯（版本、更新记录、收集记录）移到右上角图标。",
+      "来源延迟或收集失败时，标签旁显示红点。"
     ]
   },
   {
@@ -46,6 +89,12 @@
       "Tab Info baharu: nombor versi aplikasi dan tarikh dikeluarkan.",
       "Rekod kemas kini: apa yang berubah dalam setiap versi.",
       "Sejarah kutipan data: masa setiap kutipan dan sama ada MPOB, FAMA dan PriceCatcher berjaya."
+    ],
+    "title_zh": "版本、更新记录和收集记录",
+    "notes_zh": [
+      "新增资讯页：应用版本号和发布时间。",
+      "更新记录：每个版本改了什么。",
+      "数据收集记录：每次收集的时间，以及 MPOB、FAMA、PriceCatcher 是否成功。"
     ]
   },
   {
@@ -56,6 +105,12 @@
       "Versi baharu dipasang secara automatik apabila aplikasi dibuka atau kembali ke skrin.",
       "Jika sedang melihat butiran barang, papar butang 'Versi baharu tersedia' dan bukannya muat semula serta-merta.",
       "Harga dimuat semula apabila kembali ke aplikasi selepas lebih 10 minit."
+    ],
+    "title_zh": "自动更新",
+    "notes_zh": [
+      "打开应用或回到应用时，自动安装新版本。",
+      "正在看商品详情时，改为显示“有新版本”按钮，不会立即重新加载。",
+      "离开超过 10 分钟后回到应用，会重新加载价格。"
     ]
   },
   {
@@ -67,6 +122,13 @@
       "Pilih Ladang / Borong / Runcit, Negeri, Daerah dan kategori.",
       "Tekan barang untuk lihat rantaian harga (ladang → borong → runcit) dan perbandingan negeri atau daerah.",
       "Harga ialah purata 7 hari, ditimbang mengikut bilangan rekod FAMA."
+    ],
+    "title_zh": "FAMA 按层级、州和县显示",
+    "notes_zh": [
+      "修正 FAMA 价格：以前把农场、批发、零售和所有地点混在一起平均。",
+      "可选农场 / 批发 / 零售、州、县和类别。",
+      "点击商品可看价格链（农场 → 批发 → 零售）和各州或各县比较。",
+      "价格为 7 天平均，按 FAMA 记录笔数加权。"
     ]
   },
   {
@@ -76,6 +138,11 @@
     "notes": [
       "Pautan 'Semak di …' ke sumber rasmi setiap harga.",
       "Label Terkini / Lewat / Gagal dikutip dan amaran di bahagian atas."
+    ],
+    "title_zh": "数据来源和新鲜度",
+    "notes_zh": [
+      "每个价格都有“到…核对”链接，连到官方来源。",
+      "显示最新 / 延迟 / 收集失败标签，顶部有提醒。"
     ]
   },
   {
@@ -86,6 +153,12 @@
       "Harga BTS sawit MPOB dengan trend, harga pasaran FAMA dan harga runcit PriceCatcher.",
       "Boleh dipasang di skrin utama dan berfungsi luar talian.",
       "API JSON untuk aplikasi lain."
+    ],
+    "title_zh": "网页应用（PWA）和 API",
+    "notes_zh": [
+      "MPOB 油棕鲜果串价格及走势、FAMA 市场价格、PriceCatcher 零售价格。",
+      "可添加到主屏幕，离线也能用。",
+      "提供 JSON API 给其他应用使用。"
     ]
   },
   {
@@ -94,6 +167,10 @@
     "title": "Pengumpul harga harian",
     "notes": [
       "Kutipan automatik setiap hari jam 6:13 petang: MPOB, FAMA dan PriceCatcher."
+    ],
+    "title_zh": "每日价格收集",
+    "notes_zh": [
+      "每天下午 6:13 自动收集：MPOB、FAMA 和 PriceCatcher。"
     ]
   }
 ]

@@ -292,7 +292,10 @@ def changelog() -> list[dict]:
     except (OSError, subprocess.CalledProcessError) as e:
         print(f"[site] WARNING: no git history for release times ({e})")
     out = [{"version": e["version"], "released_at": times.get(e["version"]),
-            "title": e["title"], "notes": e.get("notes", [])} for e in entries]
+            "title": e["title"], "notes": e.get("notes", []),
+            # Chinese text, when written (shown when the app is in Chinese).
+            **({"title_zh": e["title_zh"]} if e.get("title_zh") else {}),
+            **({"notes_zh": e["notes_zh"]} if e.get("notes_zh") else {})} for e in entries]
     missing = [e["version"] for e in out if not e["released_at"]]
     if missing:
         print(f"[site] WARNING: release time unknown for {missing}")

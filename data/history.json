@@ -13,7 +13,8 @@
   "ok": true,
   "note": "Kaedah lama: purata bercampur (dibetulkan dalam versi 1.2.0)",
   "run": "43997708669",
-  "trigger": "manual"
+  "trigger": "manual",
+  "note_zh": "旧方法：平均价混在一起（已在 1.2.0 修正）"
  },
  {
   "source": "pricecatcher",
@@ -37,7 +38,8 @@
   "ok": true,
   "note": "Ujian struktur data FAMA",
   "run": "44003609709",
-  "trigger": "manual"
+  "trigger": "manual",
+  "note_zh": "测试 FAMA 数据结构"
  },
  {
   "source": "pricecatcher",
@@ -61,7 +63,8 @@
   "ok": true,
   "note": "Kaedah baharu: mengikut peringkat, negeri dan daerah",
   "run": "44004368999",
-  "trigger": "manual"
+  "trigger": "manual",
+  "note_zh": "新方法：按层级、州和县"
  },
  {
   "source": "pricecatcher",
