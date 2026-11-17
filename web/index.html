@@ -136,6 +136,16 @@
   <div id="toast" class="toast" role="status" hidden></div>
   <dialog id="fama-detail" class="sheet" aria-labelledby="fd-title"></dialog>
   <dialog id="install-guide" class="sheet" aria-labelledby="ig-title"></dialog>
+  <dialog id="lang-chooser" class="sheet lang-chooser" aria-labelledby="lc-title">
+    <h3 id="lc-title" tabindex="-1" autofocus lang="en">Choose your language</h3>
+    <p class="small muted"><span lang="ms">Pilih bahasa</span> · <span lang="zh-Hans">选择语言</span></p>
+    <div class="lang-options">
+      <button type="button" class="btn lang-opt" data-lang="en" lang="en">English <em>Default</em></button>
+      <button type="button" class="btn lang-opt" data-lang="ms" lang="ms">Bahasa Melayu</button>
+      <button type="button" class="btn lang-opt" data-lang="zh" lang="zh-Hans">中文</button>
+    </div>
+    <p class="small muted center">You can change it later at the top right · <span lang="ms">Boleh tukar kemudian di kanan atas</span> · <span lang="zh-Hans">之后可在右上角更改</span></p>
+  </dialog>
   <dialog id="qr-big" class="qr-big" aria-label="Kod QR besar" data-i18n-attr="aria-label:qr.big">
     <img src="icons/qr.svg" alt="Kod QR ke https://bryanwoo988.github.io/TanaPriceInfo/" data-i18n-attr="alt:qr.alt">
     <p>Harga Harian</p>

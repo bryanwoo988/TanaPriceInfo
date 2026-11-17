@@ -1,5 +1,29 @@
 [
   {
+    "version": "1.11.0",
+    "title": "Pilih bahasa semasa kali pertama dibuka",
+    "notes": [
+      "Kali pertama aplikasi dibuka, pengguna memilih bahasa: English, Bahasa Melayu atau 中文.",
+      "Bahasa lalai kini Bahasa Inggeris (jika ditutup tanpa memilih).",
+      "Panduan pasang di skrin utama muncul selepas bahasa dipilih.",
+      "Bahasa Inggeris: '1 day ago', '1 record' (bukan '1 days', '1 records')."
+    ],
+    "title_zh": "第一次打开时选择语言",
+    "notes_zh": [
+      "第一次打开应用时，让用户选择语言：English、Bahasa Melayu 或中文。",
+      "默认语言改为英文（不选直接关闭时）。",
+      "选好语言后，才显示添加到主屏幕的教学。",
+      "英文单复数修正：'1 day ago'、'1 record'（不再是 '1 days'、'1 records'）。"
+    ],
+    "title_en": "Choose a language on first open",
+    "notes_en": [
+      "The first time the app is opened, the user chooses a language: English, Bahasa Melayu or 中文.",
+      "The default language is now English (if closed without choosing).",
+      "The add-to-home-screen guide appears after the language is chosen.",
+      "English singular forms: '1 day ago', '1 record' (not '1 days', '1 records')."
+    ]
+  },
+  {
     "version": "1.10.0",
     "title": "Bahasa Inggeris: tiga bahasa",
     "notes": [

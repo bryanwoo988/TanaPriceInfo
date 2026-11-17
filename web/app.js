@@ -811,7 +811,7 @@ setOffline();
 
 /* ---------- updates: new app version and fresh data ---------- */
 // The user is "busy" when a detail sheet is open or they are typing: don't reload under them.
-const busy = () => $("fama-detail").open || $("qr-big").open || $("install-guide").open || ["INPUT", "SELECT"].includes(document.activeElement?.tagName);
+const busy = () => $("fama-detail").open || $("qr-big").open || $("install-guide").open || $("lang-chooser").open || ["INPUT", "SELECT"].includes(document.activeElement?.tagName);
 
 function applyUpdate() {
   if (!busy()) { location.reload(); return; }
@@ -870,14 +870,33 @@ function renderLangPicker() {
   if (!sel.options.length) sel.replaceChildren(...LANGS.map((l) => el("option", { value: l, lang: l === "zh" ? "zh-Hans" : l }, LANG_NAMES[l])));
   sel.value = LANG;
 }
-$("lang-select").addEventListener("change", () => {
-  LANG = $("lang-select").value;
+function setLang(lang) {
+  LANG = lang;
   store("lang", LANG);
   renderLangPicker();
   rerenderAll();
-});
+}
+$("lang-select").addEventListener("change", () => setLang($("lang-select").value));
+
+// First open: ask for the language (English is the default if the user just closes it).
+function askLanguage() {
+  if (SAVED_LANG) return Promise.resolve();
+  const d = $("lang-chooser");
+  return new Promise((resolve) => {
+    for (const b of d.querySelectorAll(".lang-opt")) {
+      b.addEventListener("click", () => { setLang(b.dataset.lang); d.close(); });
+    }
+    d.addEventListener("click", (ev) => { if (ev.target === d) d.close(); });
+    d.addEventListener("close", () => {
+      if (!store("lang")) setLang(DEFAULT_LANG); // closed without choosing
+      resolve();
+    }, { once: true });
+    if (d.showModal) d.showModal(); else { d.setAttribute("open", ""); }
+  });
+}
 renderLangPicker();
 
 applyStaticText();
 $("build").textContent = t("build", { v: VERSION, b: BUILD });
-load().then(maybeShowInstallGuide);
+// Order on first open: language first, then (once chosen) the install guide.
+Promise.all([load(), askLanguage()]).then(maybeShowInstallGuide);

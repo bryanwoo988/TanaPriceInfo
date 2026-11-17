@@ -6,16 +6,15 @@
 const LANGS = ["ms", "zh", "en"];
 const LANG_LABELS = { ms: "BM", zh: "中文", en: "EN" };         // shown on the header button
 const LANG_NAMES = { ms: "Bahasa Melayu", zh: "中文", en: "English" }; // shown in the menu
-let LANG = (() => {
+const DEFAULT_LANG = "en";
+// null until the user picks a language (first open shows the language chooser).
+const SAVED_LANG = (() => {
   try {
     const saved = localStorage.getItem("lang");
-    if (LANGS.includes(saved)) return saved;
-  } catch (_) { /* private mode */ }
-  const nav = (navigator.language || "").toLowerCase();
-  if (nav.startsWith("zh")) return "zh";
-  if (nav.startsWith("en")) return "en";
-  return "ms"; // Malay for Malay and every other phone language
+    return LANGS.includes(saved) ? saved : null;
+  } catch (_) { return null; } // private mode
 })();
+let LANG = SAVED_LANG || DEFAULT_LANG;
 
 const STR = {
   ms: {
@@ -250,9 +249,9 @@ const STR = {
     "offline": "Offline — showing the last saved data.",
     "build": "Version {v} · {b}",
 
-    "fresh.none": "No data", "fresh.failed": "Collection failed", "fresh.late": "{n} days late", "fresh.ok": "Up to date",
+    "fresh.none": "No data", "fresh.failed": "Collection failed", "fresh.late": "{n} days late", "fresh.late_one": "1 day late", "fresh.ok": "Up to date",
     "src.check": "Check at {s} ↗",
-    "src.price": "Price of {d}", "src.today": " (today)", "src.ago": " ({n} days ago)", "src.collected": " · collected {t}",
+    "src.price": "Price of {d}", "src.today": " (today)", "src.ago": " ({n} days ago)", "src.ago_one": " (1 day ago)", "src.collected": " · collected {t}",
     "src.failed": "The last collection failed ({t}). Prices below may be old.",
     "no.data": "No data.",
 
@@ -289,11 +288,11 @@ const STR = {
     "dist.loading": "Loading district prices…", "dist.fail": "Could not load district prices.",
     "fama.window": "Prices are {n}-day averages ({from} – {to}), weighted by the number of FAMA records. ▲▼ = compared with the previous week. \"Few records\" = fewer than {few} records, so the average is less reliable. Tap an item to compare levels, places and the trend.",
     "fav": "Favourite",
-    "records": "{n} records",
+    "records": "{n} records", "records_one": "1 record",
     "fav.none": "No favourites yet. Open an item and tap ☆ to save it.",
     "no.match": "No matches.",
     "fama.none": "No {lvl} prices for {loc} in this period.",
-    "fama.count": "{n} items · {lvl} · {loc}",
+    "fama.count": "{n} items · {lvl} · {loc}", "fama.count_one": "1 item · {lvl} · {loc}",
     "share.few": " (few records)",
     "share.window": "{n}-day average {from} – {to}, FAMA",
     "nodata.short": "no data",
@@ -316,7 +315,7 @@ const STR = {
 
     "kpdn.title": "Retail Prices (KPDN PriceCatcher)",
     "kpdn.search": "Search (Malay names, e.g. bayam)",
-    "kpdn.premises": "{u} · {n} shops",
+    "kpdn.premises": "{u} · {n} shops", "kpdn.premises_one": "{u} · 1 shop",
     "kpdn.note": "Median price across the reporting shops.",
 
     "share.title": "Share the app",
@@ -353,7 +352,9 @@ const STR = {
 };
 
 function t(key, vars = {}) {
-  const s = STR[LANG]?.[key] ?? STR.ms[key] ?? key;
+  // Singular form ("key_one") when n is 1 and the language has one (English only).
+  const one = vars.n === 1 || vars.n === "1" ? STR[LANG]?.[`${key}_one`] : undefined;
+  const s = one ?? STR[LANG]?.[key] ?? STR.ms[key] ?? key;
   return s.replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? ""));
 }
 
