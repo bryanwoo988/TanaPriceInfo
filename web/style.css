@@ -381,3 +381,12 @@ svg .xh-dot { fill: var(--brand); stroke: var(--card); stroke-width: 2; vector-e
 .chart-hint { margin: 4px 0 0; }
 .scrub svg:focus { outline: none; }
 .scrub svg:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; border-radius: 6px; }
+
+/* ---------- bottom sheets: grab handle, no tap focus rings ---------- */
+.sheet::before {
+  content: ""; display: block; width: 40px; height: 5px; border-radius: 3px;
+  background: var(--line); margin: -6px auto 12px;
+}
+.sheet { overscroll-behavior: contain; will-change: transform; }
+.sheet button:focus:not(:focus-visible) { outline: none; }
+.sheet button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

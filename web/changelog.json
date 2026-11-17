@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.15.0",
+    "title": "Leret ke bawah untuk tutup",
+    "notes": [
+      "Panel dari bawah (butiran barang, panduan pasang, pilih bahasa) boleh ditutup dengan leret ke bawah dari bahagian atas; ada pemegang kelabu di atas.",
+      "Bingkai biru selepas menekan butang dalam panel dibuang (kekal untuk papan kekunci)."
+    ],
+    "title_zh": "往下滑关闭",
+    "notes_zh": [
+      "底部弹出的面板（商品详情、安装教学、语言选择）可以在顶部往下滑关闭；顶部有灰色小横杠。",
+      "去掉点按面板按钮后出现的蓝色框（用键盘时仍会显示）。"
+    ],
+    "title_en": "Swipe down to close",
+    "notes_en": [
+      "Bottom sheets (item details, install guide, language choice) close with a downward swipe from the top; a grey handle shows at the top.",
+      "Removed the blue ring after tapping buttons in a sheet (still shown for keyboard use)."
+    ]
+  },
+  {
     "version": "1.14.0",
     "title": "Carta interaktif",
     "notes": [
