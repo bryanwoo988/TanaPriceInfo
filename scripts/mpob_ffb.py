@@ -151,4 +151,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    from run_status import run_with_status
+
+    run_with_status("mpob", main)

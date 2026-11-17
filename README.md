@@ -58,12 +58,36 @@
 - FAMA 的 `verified: false` 表示数据还没和 FAMA 网站核对。
 - 每天大约 6:20pm 更新一次，app 不需要频繁请求。
 
+每个文件都有 `sources`，用来核对来源和判断数据新不新：
+
+| 字段 | 意思 |
+|---|---|
+| `url` | 官方来源网址（MPOB 是那份月度 PDF） |
+| `data_date` | 最新价格的日期。FAMA 没写价格日期，所以这里是抓取日期（`date_kind: "collected"`） |
+| `max_age_days` | 跟今天（马来西亚时间）比，`data_date` 超过这么多天就算过期 |
+| `last_attempt` / `last_success` | 上次尝试抓取的时间 / 上次成功的时间 |
+| `ok` | 上次抓取是否成功；`false` 时价格可能是旧的 |
+
+建议你的 app 用这个规则显示状态：`ok == false` → 抓取失败；今天减 `data_date` 大于 `max_age_days` → 过期；其他 → 最新。PWA 用的就是这个规则。
+
+## 数据新鲜度
+
+- 每个来源的结果记在 `data/status.json`（每天由收集脚本写入）。
+- PWA 每张卡片显示：最新 / 过期 N 天 / 抓取失败，加上价格日期、上次成功抓取时间，以及一个直接打开官方来源的链接。
+- 有任何来源不是"最新"，页面顶部会出现黄色提醒。
+- 新鲜度按你打开页面的时间计算，所以离线打开很久以前的数据也会显示过期。
+
 `api/latest.json` 例子（节录）：
 
 ```json
 {
   "schema": 1,
   "generated_at": "2026-11-17T18:16:02+08:00",
+  "sources": {
+    "mpob": {"name": "MPOB", "url": "https://price.mpob.gov.my/pdf/daily/ffb/2026-11-16",
+             "data_date": "2026-11-16", "date_kind": "price", "max_age_days": 2,
+             "last_attempt": "2026-11-17T18:14:05+08:00", "last_success": "2026-11-17T18:14:05+08:00", "ok": true}
+  },
   "mpob": {
     "unit": "RM per 1% OER (harga pintu kilang)",
     "date": "2026-11-16",

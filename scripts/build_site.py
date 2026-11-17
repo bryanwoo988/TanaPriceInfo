@@ -10,6 +10,14 @@ API (all JSON, UTF-8, CORS open on GitHub Pages):
   api/pricecatcher.json  newest PriceCatcher day, every state
 Prices are numbers (RM) or null when missing.
 
+Every file has a "sources" block for checking and freshness:
+  url           official page to check the price against
+  data_date     date of the newest price (FAMA: date it was collected,
+                because FAMA does not state a date)
+  date_kind     "price" or "collected"
+  max_age_days  data older than this (vs today, Malaysia time) is late
+  last_attempt / last_success / ok   from the daily collector run
+
 Usage:
   python scripts/build_site.py
 """
@@ -27,6 +35,34 @@ OUT = ROOT / "site"
 MYT = timezone(timedelta(hours=8))
 SCHEMA = 1
 REGIONS = ["north", "south", "central", "east_coast", "sabah", "sarawak"]
+
+# Where each price comes from, and how old it may get before we call it late.
+# MPOB and PriceCatcher publish with about a day's delay, so they get more slack.
+SOURCES = {
+    "mpob": {
+        "name": "MPOB",
+        "title": "Harga BTS harian mengikut wilayah (1% OER)",
+        "home": "https://bepi.mpob.gov.my/",
+        "date_kind": "price",
+        "max_age_days": 2,
+    },
+    "fama": {
+        "name": "FAMA",
+        "title": "Harga Pasaran Terkini",
+        "url": "https://www.fama.gov.my/harga-pasaran-terkini",
+        "home": "https://www.fama.gov.my/",
+        "date_kind": "collected",
+        "max_age_days": 1,
+    },
+    "pricecatcher": {
+        "name": "PriceCatcher (KPDN, data.gov.my)",
+        "title": "Harga runcit harian",
+        "url": "https://open.dosm.gov.my/data-catalogue/pricecatcher",
+        "home": "https://open.dosm.gov.my/data-catalogue/pricecatcher",
+        "date_kind": "price",
+        "max_age_days": 3,
+    },
+}
 
 
 def num(v, nd=2):
@@ -130,6 +166,28 @@ def pricecatcher() -> dict:
     return {"source": "PriceCatcher", "date": date, "price": "runcit (retail)", "items": items}
 
 
+def sources(m: dict, f: dict, p: dict) -> dict:
+    try:
+        status = json.loads((DATA / "status.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        status = {}
+    mpob_last = m["days"][-1]["date"] if m["days"] else None
+    dates = {"mpob": mpob_last, "fama": f.get("date"), "pricecatcher": p.get("date")}
+    out = {}
+    for key, meta in SOURCES.items():
+        st = status.get(key, {})
+        src = {**meta, "data_date": dates[key],
+               "last_attempt": st.get("last_attempt"),
+               "last_success": st.get("last_success"),
+               "ok": st.get("ok")}
+        if key == "mpob":
+            # The exact monthly PDF the prices were read from.
+            src["url"] = (f"https://price.mpob.gov.my/pdf/daily/ffb/{mpob_last}"
+                          if mpob_last else meta["home"])
+        out[key] = src
+    return out
+
+
 def write(path: Path, obj) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, ensure_ascii=False, separators=(",", ":")),
@@ -145,13 +203,16 @@ def main():
 
     now = datetime.now(MYT).isoformat(timespec="seconds")
     m, f, p = mpob(), fama(), pricecatcher()
+    src = sources(m, f, p)
     meta = {"schema": SCHEMA, "generated_at": now}
 
-    write(OUT / "api" / "mpob.json", {**meta, **m})
-    write(OUT / "api" / "fama.json", {**meta, **f})
-    write(OUT / "api" / "pricecatcher.json", {**meta, **p})
+    write(OUT / "api" / "mpob.json", {**meta, "sources": {"mpob": src["mpob"]}, **m})
+    write(OUT / "api" / "fama.json", {**meta, "sources": {"fama": src["fama"]}, **f})
+    write(OUT / "api" / "pricecatcher.json",
+          {**meta, "sources": {"pricecatcher": src["pricecatcher"]}, **p})
     write(OUT / "api" / "latest.json", {
         **meta,
+        "sources": src,
         "mpob": {"unit": m["unit"], **(mpob_latest(m) or {})},
         "fama": f,
         "pricecatcher": p,

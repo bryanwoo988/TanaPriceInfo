@@ -47,6 +47,56 @@ async function getJSON(path) {
   return r.json();
 }
 
+/* ---------- sources & freshness ---------- */
+const DAY = 86400000;
+// "Today" in Malaysia, whatever the phone's time zone is.
+const todayMYT = () => new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+const ageDays = (iso) => Math.round((Date.parse(todayMYT()) - Date.parse(iso.slice(0, 10))) / DAY);
+const fmtTime = (iso) => (iso ? `${fmtDate(iso).replace(/ \d{4}$/, "")}, ${iso.slice(11, 16)}` : "—");
+const SHORT = { mpob: "MPOB", fama: "FAMA", pricecatcher: "PriceCatcher" };
+
+function freshness(src) {
+  if (!src || !src.data_date) return { level: "bad", label: "Tiada data" };
+  const age = ageDays(src.data_date);
+  if (src.ok === false) return { level: "bad", label: "Gagal dikutip", age };
+  if (age > src.max_age_days) return { level: "warn", label: `Lewat ${age} hari`, age };
+  return { level: "ok", label: "Terkini", age };
+}
+
+function renderSource(key, src) {
+  const box = $(`src-${key}`);
+  if (!box) return null;
+  const f = freshness(src);
+  const dateLabel = src?.date_kind === "collected" ? "Tarikh dikutip" : "Harga bertarikh";
+  const kids = [
+    el("div", { class: "src-top" },
+      el("span", { class: `pill ${f.level}` }, f.label),
+      src?.url ? el("a", { href: src.url, target: "_blank", rel: "noopener" }, `Semak di ${src.name} ↗`) : null),
+    el("p", { class: "small muted" },
+      `${dateLabel}: ${fmtDate(src?.data_date)}` +
+      (f.age != null ? ` (${f.age === 0 ? "hari ini" : `${f.age} hari lalu`})` : "") +
+      (src?.last_success ? ` · Kutipan berjaya: ${fmtTime(src.last_success)}` : "")),
+  ];
+  if (src?.ok === false) {
+    kids.push(el("p", { class: "small warn-text" },
+      `Kutipan terakhir gagal (${fmtTime(src.last_attempt)}). Harga di bawah mungkin lama.`));
+  }
+  if (src?.date_kind === "collected") {
+    kids.push(el("p", { class: "small muted" }, `${src.name} tidak menyatakan tarikh harga; ini tarikh data dikutip.`));
+  }
+  box.replaceChildren(...kids);
+  return f;
+}
+
+function renderHealth(sources) {
+  const bad = Object.entries(sources || {})
+    .map(([k, s]) => [SHORT[k] || k, freshness(s)])
+    .filter(([, f]) => f.level !== "ok");
+  const h = $("health");
+  h.hidden = !bad.length;
+  h.textContent = bad.length ? `⚠ ${bad.map(([n, f]) => `${n}: ${f.label}`).join(" · ")}` : "";
+}
+
 /* ---------- MPOB ---------- */
 let mpobDays = [];
 let selRegion = store("region") || "north";
@@ -59,7 +109,7 @@ function renderMpob(latest) {
     return;
   }
   $("mpob-date").textContent =
-    `${fmtDate(latest.date)}` + (latest.previous_date ? ` · berbanding ${fmtDate(latest.previous_date)}` : "");
+    latest.previous_date ? `Perubahan berbanding ${fmtDate(latest.previous_date)}` : "";
   for (const [key, name] of Object.entries(REGION_NAMES)) {
     const c = latest.change?.[key];
     const chg = c == null || c === 0 ? null
@@ -155,7 +205,10 @@ function showTab(name) {
 async function load() {
   try {
     const [latest, mpob] = await Promise.all([getJSON("api/latest.json"), getJSON("api/mpob.json")]);
-    $("updated").textContent = `Dikemas kini ${fmtDate(latest.generated_at)}, ${latest.generated_at.slice(11, 16)}`;
+    $("updated").textContent = `Laman dikemas kini ${fmtTime(latest.generated_at)}`;
+    const sources = latest.sources || {};
+    for (const k of ["mpob", "fama", "pricecatcher"]) renderSource(k, sources[k]);
+    renderHealth(sources);
 
     mpobDays = mpob.days || [];
     renderMpob(latest.mpob);
@@ -163,13 +216,11 @@ async function load() {
 
     const f = latest.fama || {};
     famaItems = f.items || [];
-    $("fama-date").textContent = f.date ? fmtDate(f.date) : "";
     $("fama-badge").hidden = $("fama-note").hidden = f.verified !== false;
     renderFama();
 
     const p = latest.pricecatcher || {};
     pcItems = p.items || [];
-    $("pc-date").textContent = p.date ? fmtDate(p.date) : "";
     fillStates();
     renderPc();
   } catch (e) {
