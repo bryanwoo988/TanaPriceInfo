@@ -244,5 +244,29 @@
   "note": "",
   "run": "44593324902",
   "trigger": "auto"
+ },
+ {
+  "source": "mpob",
+  "time": "2026-11-20T03:38:26+08:00",
+  "ok": true,
+  "note": "",
+  "run": "44600254233",
+  "trigger": "auto"
+ },
+ {
+  "source": "fama",
+  "time": "2026-11-20T03:39:24+08:00",
+  "ok": true,
+  "note": "",
+  "run": "44600254233",
+  "trigger": "auto"
+ },
+ {
+  "source": "pricecatcher",
+  "time": "2026-11-20T03:39:29+08:00",
+  "ok": true,
+  "note": "",
+  "run": "44600254233",
+  "trigger": "auto"
  }
 ]
