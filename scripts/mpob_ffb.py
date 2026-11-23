@@ -66,9 +66,27 @@ def pdf_to_text(content: bytes) -> str:
         return "\n".join(p.extract_text() or "" for p in pdf.pages)
 
 
+def get_pdf(url: str, tries: int = 3) -> requests.Response:
+    """GET with retries: MPOB's server sometimes does not answer for a few minutes."""
+    for i in range(1, tries + 1):
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=(20, 60))
+            if r.status_code < 500:
+                r.raise_for_status()
+                return r
+            err = requests.HTTPError(f"HTTP {r.status_code}", response=r)
+        except (requests.ConnectionError, requests.Timeout) as e:
+            err = e
+        if i == tries:
+            raise err
+        wait = 60 * i
+        print(f"[MPOB] try {i}/{tries} failed ({err.__class__.__name__}); retrying in {wait}s",
+              file=sys.stderr)
+        time.sleep(wait)
+
+
 def fetch_month(d: date) -> list[dict]:
-    r = requests.get(URL.format(d=d.isoformat()), headers=HEADERS, timeout=60)
-    r.raise_for_status()
+    r = get_pdf(URL.format(d=d.isoformat()))
     if r.content[:4] == b"%PDF":
         text = pdf_to_text(r.content)
     else:  # in case MPOB serves HTML/text instead of PDF
