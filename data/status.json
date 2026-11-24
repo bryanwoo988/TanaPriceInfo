@@ -1,19 +1,19 @@
 {
  "fama": {
-  "last_attempt": "2026-11-24T07:01:03+08:00",
-  "last_success": "2026-11-24T07:01:03+08:00",
+  "last_attempt": "2026-11-25T04:39:16+08:00",
+  "last_success": "2026-11-25T04:39:16+08:00",
   "note": "",
   "ok": true
  },
  "mpob": {
-  "last_attempt": "2026-11-24T07:00:07+08:00",
-  "last_success": "2026-11-24T06:02:11+08:00",
-  "note": "exit 1",
-  "ok": false
+  "last_attempt": "2026-11-25T04:38:12+08:00",
+  "last_success": "2026-11-25T04:38:12+08:00",
+  "note": "",
+  "ok": true
  },
  "pricecatcher": {
-  "last_attempt": "2026-11-24T07:01:07+08:00",
-  "last_success": "2026-11-24T07:01:07+08:00",
+  "last_attempt": "2026-11-25T04:39:21+08:00",
+  "last_success": "2026-11-25T04:39:21+08:00",
   "note": "",
   "ok": true
  }
