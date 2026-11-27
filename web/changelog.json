@@ -1,5 +1,20 @@
 [
   {
+    "version": "1.16.2",
+    "title": "Data luar talian aplikasi lain tidak lagi dipadam",
+    "notes": [
+      "Kemas kini aplikasi ini kini hanya membersihkan simpanan luar taliannya sendiri, bukan simpanan aplikasi lain di laman yang sama. Harga yang disimpan untuk luar talian dikekalkan."
+    ],
+    "title_zh": "不再删除其他 App 的离线资料",
+    "notes_zh": [
+      "这个 App 更新时只清理自己的离线缓存，不会再删掉同一网址下其他 App 的离线资料。已保存的离线价格会保留。"
+    ],
+    "title_en": "Other apps' offline data is no longer deleted",
+    "notes_en": [
+      "Updating this app now only clears its own offline storage, not that of other apps on the same site. Prices saved for offline use are kept."
+    ]
+  },
+  {
     "version": "1.16.1",
     "title": "Pembetulan carian dan teks",
     "notes": [

@@ -5,8 +5,14 @@
 // byte by byte to detect an update; the page (app.js) asks for that check when
 // the app is opened or brought back to the foreground.
 const BUILD = "__BUILD__";
-const SHELL = `shell-${BUILD}`;
-const DATA = "data";
+// Every app on bryanwoo988.github.io shares one cache storage: our caches carry
+// the "tanaprice-" prefix and we only ever delete our own.
+const PREFIX = "tanaprice-";
+const SHELL = `${PREFIX}shell-${BUILD}`;
+const DATA = `${PREFIX}data`;
+// Names used up to 1.16.1, before the prefix. Generic, so they are only removed
+// when every entry in them is one of our own URLs.
+const LEGACY = (k) => k === "data" || /^shell-[0-9a-f]{10}$/.test(k);
 const SHELL_FILES = [
   "./", "index.html", "style.css", "i18n.js", "names.js", "app.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/qr.svg",
@@ -32,10 +38,32 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== SHELL && k !== DATA).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.map((k) => {
+        if (k.startsWith(PREFIX)) return k === SHELL || k === DATA ? null : caches.delete(k);
+        if (LEGACY(k)) return dropLegacy(k);
+        return null; // another app's cache: leave it alone
+      })))
       .then(() => self.clients.claim())
   );
 });
+
+// Old unprefixed cache: keep its saved prices (copied into DATA), then delete it,
+// but only if all it holds is ours.
+async function dropLegacy(name) {
+  const scope = self.registration.scope;
+  const c = await caches.open(name);
+  const reqs = await c.keys();
+  if (!reqs.every((r) => r.url.startsWith(scope))) return;
+  if (name === "data") {
+    const data = await caches.open(DATA);
+    await Promise.all(reqs.map(async (r) => {
+      if (await data.match(r)) return;
+      const res = await c.match(r);
+      if (res) await data.put(r, res);
+    }));
+  }
+  await caches.delete(name);
+}
 
 // Network first (revalidated, not from HTTP cache); after a timeout or offline, use the cache.
 function networkFirst(request, cacheName) {
